@@ -1,0 +1,79 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35806.99 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testes", "Testes", "{4ECDEF7B-4B04-409A-AC7B-DCA454389656}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Adapters", "Adapters", "{1BB7EF09-CB9D-4759-A93A-D7E1E38874C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{B7DC384E-78C3-4BC6-812B-4FEDBE3AA418}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Driven", "Driven", "{4AFCE06E-F2A9-4BEB-BC9E-EDECC097B551}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Driver", "Driver", "{F8899F28-E45E-47B2-94A6-E702044EDB83}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Hackatoon.Identity.Infrastructure", "Fiap.Hackatoon.Identity.Infrastructure\Fiap.Hackatoon.Identity.Infrastructure.csproj", "{5A94EC79-4030-4FCF-A941-08CD5A078A36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Hackatoon.Identity.Application", "Fiap.Hackatoon.Identity.Application\Fiap.Hackatoon.Identity.Application.csproj", "{DEE0BA3E-FD23-4ADE-B142-2EEF0374DD2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Hackatoon.Identity.Domain", "Fiap.Hackatoon.Identity.Domain\Fiap.Hackatoon.Identity.Domain.csproj", "{A4AF0A79-8234-4A90-B4BE-A63B231702D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Hackatoon.Identity.API", "Fiap.Hackatoon.Identity.API\Fiap.Hackatoon.Identity.API.csproj", "{0FE5D637-F942-4DF4-8088-5ABA96B06E5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Hackatoon.Identity.UnitTest", "Fiap.Hackatoon.Identity.UnitTest\Fiap.Hackatoon.Identity.UnitTest.csproj", "{59AC95DA-2F4A-41EF-B4B4-B90558E3470C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fiap.Hackatoon.Identity.IntegrationTests", "Fiap.Hackatoon.Identity.IntegrationTests\Fiap.Hackatoon.Identity.IntegrationTests.csproj", "{882E8271-E595-4F90-8825-81FCBFCF038E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A94EC79-4030-4FCF-A941-08CD5A078A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A94EC79-4030-4FCF-A941-08CD5A078A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A94EC79-4030-4FCF-A941-08CD5A078A36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A94EC79-4030-4FCF-A941-08CD5A078A36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEE0BA3E-FD23-4ADE-B142-2EEF0374DD2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEE0BA3E-FD23-4ADE-B142-2EEF0374DD2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEE0BA3E-FD23-4ADE-B142-2EEF0374DD2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEE0BA3E-FD23-4ADE-B142-2EEF0374DD2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4AF0A79-8234-4A90-B4BE-A63B231702D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4AF0A79-8234-4A90-B4BE-A63B231702D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4AF0A79-8234-4A90-B4BE-A63B231702D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4AF0A79-8234-4A90-B4BE-A63B231702D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FE5D637-F942-4DF4-8088-5ABA96B06E5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FE5D637-F942-4DF4-8088-5ABA96B06E5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FE5D637-F942-4DF4-8088-5ABA96B06E5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FE5D637-F942-4DF4-8088-5ABA96B06E5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59AC95DA-2F4A-41EF-B4B4-B90558E3470C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59AC95DA-2F4A-41EF-B4B4-B90558E3470C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59AC95DA-2F4A-41EF-B4B4-B90558E3470C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59AC95DA-2F4A-41EF-B4B4-B90558E3470C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{882E8271-E595-4F90-8825-81FCBFCF038E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{882E8271-E595-4F90-8825-81FCBFCF038E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{882E8271-E595-4F90-8825-81FCBFCF038E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{882E8271-E595-4F90-8825-81FCBFCF038E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1BB7EF09-CB9D-4759-A93A-D7E1E38874C7} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B7DC384E-78C3-4BC6-812B-4FEDBE3AA418} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{4AFCE06E-F2A9-4BEB-BC9E-EDECC097B551} = {1BB7EF09-CB9D-4759-A93A-D7E1E38874C7}
+		{F8899F28-E45E-47B2-94A6-E702044EDB83} = {1BB7EF09-CB9D-4759-A93A-D7E1E38874C7}
+		{5A94EC79-4030-4FCF-A941-08CD5A078A36} = {4AFCE06E-F2A9-4BEB-BC9E-EDECC097B551}
+		{DEE0BA3E-FD23-4ADE-B142-2EEF0374DD2D} = {B7DC384E-78C3-4BC6-812B-4FEDBE3AA418}
+		{A4AF0A79-8234-4A90-B4BE-A63B231702D5} = {B7DC384E-78C3-4BC6-812B-4FEDBE3AA418}
+		{0FE5D637-F942-4DF4-8088-5ABA96B06E5A} = {F8899F28-E45E-47B2-94A6-E702044EDB83}
+		{59AC95DA-2F4A-41EF-B4B4-B90558E3470C} = {4ECDEF7B-4B04-409A-AC7B-DCA454389656}
+		{882E8271-E595-4F90-8825-81FCBFCF038E} = {4ECDEF7B-4B04-409A-AC7B-DCA454389656}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EB059900-FC48-4696-83FA-98A4E49920B9}
+	EndGlobalSection
+EndGlobal
