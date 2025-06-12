@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fiap.Hackatoon.Identity.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,6 @@ namespace Fiap.Hackatoon.Identity.Domain.Interfaces.Services
 {
     public interface IClientService
     {
+        Task<Client?> GetClient(string search, string password);
     }
 }

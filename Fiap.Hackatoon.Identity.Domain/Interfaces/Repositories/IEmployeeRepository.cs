@@ -7,12 +7,8 @@ using System.Threading.Tasks;
 
 namespace Fiap.Hackatoon.Identity.Domain.Interfaces.Repositories
 {
-    public interface IEmployeeRepository
+    public interface IEmployeeRepository:IRepository<Employee>
     {
-        Task<Employee> GetEmployeeById(int id);
-
-        Task<Employee> GetEmployeeByEmail(string email);
-
-        Task<IEnumerable<Employee>> GetEmployees();
+       
     }
 }

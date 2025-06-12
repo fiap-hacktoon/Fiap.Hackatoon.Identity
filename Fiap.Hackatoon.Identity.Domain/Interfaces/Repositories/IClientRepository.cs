@@ -7,16 +7,8 @@ using System.Threading.Tasks;
 
 namespace Fiap.Hackatoon.Identity.Domain.Interfaces.Repositories
 {
-    public interface IClientRepository
+    public interface IClientRepository : IRepository<Client>
     {
-        Task<Client> GetClientById(int id);
-
-        Task<Client> GetClientByEmail(string email);
-
-        Task<Client> GetClientByDocument(string document);
-
-        Task<Client> GetClientByEmailOrDocument(string search);
-
-        Task<IEnumerable<Client>> GetClients();
+       
     }
 }

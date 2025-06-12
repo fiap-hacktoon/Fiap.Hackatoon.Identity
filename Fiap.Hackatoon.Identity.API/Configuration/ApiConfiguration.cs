@@ -35,7 +35,7 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
         {
             app.UseSwagger();
             app.UseSwaggerUI();
-
+            // app.UseHealthChecks("/health");
             app.UseMetricServer();
             app.UseHttpMetrics();
             app.UseHttpsRedirection();            
