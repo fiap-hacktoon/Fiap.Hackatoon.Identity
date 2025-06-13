@@ -1,4 +1,5 @@
-﻿using Fiap.Hackatoon.Identity.Domain.Entities;
+﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
+using Fiap.Hackatoon.Identity.Domain.Entities;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Repositories;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
 
@@ -21,6 +22,6 @@ namespace Fiap.Hackatoon.Identity.Domain.Services
 
             if (client is null) return null;
             return client;
-        }
+        }       
     }
 }

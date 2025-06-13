@@ -1,4 +1,5 @@
-﻿using Fiap.Hackatoon.Identity.Domain.Entities;
+﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
+using Fiap.Hackatoon.Identity.Domain.Entities;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
 
@@ -38,6 +39,14 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
                 throw;
             }
+        }
+
+
+        public async Task<bool> AddClient(ClientDto ClientDto)
+        {
+
+            
+            return true;
         }
     }
 }
