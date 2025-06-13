@@ -38,9 +38,6 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
                 throw;
             }
-
-
-
         }
     }
 }

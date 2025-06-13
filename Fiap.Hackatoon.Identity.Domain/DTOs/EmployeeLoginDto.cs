@@ -12,6 +12,7 @@ namespace Fiap.Hackatoon.Identity.Domain.DTOs
     {
         [Required(ErrorMessage ="Email é obrigatório")]        
         public string Email { get; set; }
+
         [Required(ErrorMessage = "Senha é obrigatório")]
         public string Password { get; set; }
     }
