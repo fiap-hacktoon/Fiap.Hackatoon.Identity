@@ -5,7 +5,6 @@ using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
 using Fiap.Hackatoon.Identity.Domain.Services;
 using Fiap.Hackatoon.Identity.Infrastructure.Data;
 using Fiap.Hackatoon.Identity.Infrastructure.Repositories;
-using Microsoft.AspNetCore.DataProtection.Repositories;
 
 namespace Fiap.Hackatoon.Identity.API.Configuration
 {
@@ -13,7 +12,6 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
     {
         public static void RegisterServices(this IServiceCollection services)
         {
-
             #region Context
             services.AddScoped<IdentityContext>();
             #endregion
@@ -24,7 +22,6 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
             services.AddScoped<IClientRepository, ClientRepository>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             #endregion
-
 
             #region Application
             services.AddScoped<ITokenApplication, TokenApplication>();

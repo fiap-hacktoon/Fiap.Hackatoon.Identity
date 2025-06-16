@@ -21,21 +21,17 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
                 options.SuppressModelStateInvalidFilter = true;
             });
 
-
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen(c =>
-            {
-            });
+            services.AddSwaggerGen(c => {});
 
             services.UseHttpClientMetrics();
         }
-
 
         public static void UseApiConfiguration(this WebApplication app, IWebHostEnvironment env)
         {
             app.UseSwagger();
             app.UseSwaggerUI();
-            // app.UseHealthChecks("/health");
+            app.UseHealthChecks("/health");
             app.UseMetricServer();
             app.UseHttpMetrics();
             app.UseHttpsRedirection();            

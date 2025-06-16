@@ -2,12 +2,7 @@
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Repositories;
 using Fiap.Hackatoon.Identity.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Fiap.Hackatoon.Identity.Infrastructure.Repositories
 {
@@ -60,18 +55,13 @@ namespace Fiap.Hackatoon.Identity.Infrastructure.Repositories
         {
             findOptions ??= new FindOptions();
             var entity = _identityContext.Set<TEntity>();
-            if (findOptions.IsAsNoTracking && findOptions.IsIgnoreAutoIncludes)
-            {
-                entity.IgnoreAutoIncludes().AsNoTracking();
-            }
-            else if (findOptions.IsIgnoreAutoIncludes)
-            {
-                entity.IgnoreAutoIncludes();
-            }
-            else if (findOptions.IsAsNoTracking)
-            {
+            if (findOptions.IsAsNoTracking && findOptions.IsIgnoreAutoIncludes)            
+                entity.IgnoreAutoIncludes().AsNoTracking();            
+            else if (findOptions.IsIgnoreAutoIncludes)            
+                entity.IgnoreAutoIncludes();            
+            else if (findOptions.IsAsNoTracking)                
                 entity.AsNoTracking();
-            }
+            
             return entity;
         }
     }
