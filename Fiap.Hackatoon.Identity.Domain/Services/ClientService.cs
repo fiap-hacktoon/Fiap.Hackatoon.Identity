@@ -14,7 +14,7 @@ namespace Fiap.Hackatoon.Identity.Domain.Services
             _clientRepository = clientRepository;
         }
 
-        public async Task<Client?> GetClient(string search, string password)
+        public async Task<Client?> GetClientLogin(string search, string password)
         {
             var client = await _clientRepository
                 .FindOne(x => (x.Email == search | x.Document == search)
@@ -22,6 +22,24 @@ namespace Fiap.Hackatoon.Identity.Domain.Services
 
             if (client is null) return null;
             return client;
-        }       
+        }
+        
+        public async Task<Client?> GetClientByEmailOrDocument(string email, string document)
+        {
+            var client = await _clientRepository
+               .FindOne(x => (x.Email == email | x.Document == document));
+
+            if (client is null) return null;
+            return client;
+        }
+
+        public async Task<Client?> GetClientById(int id)
+        {
+
+            var client = await _clientRepository.FindOne(x => x.Id == id);
+            if (client is null) return null;
+            return client;
+
+        }
     }
 }

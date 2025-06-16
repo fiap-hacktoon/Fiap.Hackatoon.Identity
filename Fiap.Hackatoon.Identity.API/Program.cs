@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApiConfiguration(builder.Configuration);
 builder.Services.RegisterServices();
+builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();
 

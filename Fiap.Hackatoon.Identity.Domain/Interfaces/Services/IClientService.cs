@@ -9,6 +9,8 @@ namespace Fiap.Hackatoon.Identity.Domain.Interfaces.Services
 {
     public interface IClientService
     {
-        Task<Client?> GetClient(string search, string password);        
+        Task<Client?> GetClientLogin(string search, string password);
+        Task<Client?> GetClientByEmailOrDocument(string email, string document);
+        Task<Client?> GetClientById(int id);
     }
 }

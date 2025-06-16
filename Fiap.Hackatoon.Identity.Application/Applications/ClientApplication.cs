@@ -2,6 +2,7 @@
 using Fiap.Hackatoon.Identity.Domain.Entities;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
+using MassTransit;
 
 
 
@@ -12,11 +13,13 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
         private readonly IClientService _clientService;
         private readonly ITokenApplication _tokenApplication;
+        private readonly IBus _bus;
 
-        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication)
+        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication, IBus bus)
         {
             _clientService = clientService;
             _tokenApplication = tokenApplication;
+            _bus = bus;
         }
 
 
@@ -24,7 +27,7 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
         {
             try
             {
-                var user = await _clientService.GetClient(search, password);
+                var user = await _clientService.GetClientLogin(search, password);
 
                 if (user is null)
                     throw new Exception("Usuário ou senha invalido");
@@ -40,12 +43,14 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
                 throw;
             }
         }
-
-
         public async Task<bool> AddClient(ClientDto ClientDto)
         {
+            var client = await _clientService.GetClientByEmailOrDocument(ClientDto.Email, ClientDto.Document);
 
+            if (client is not null) throw new Exception("O email/document já existe cadastrado");
             
+            await _bus.Publish(ClientDto);
+
             return true;
         }
     }
