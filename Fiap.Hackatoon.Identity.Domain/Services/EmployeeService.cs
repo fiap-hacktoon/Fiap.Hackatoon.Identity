@@ -13,7 +13,7 @@ namespace Fiap.Hackatoon.Identity.Domain.Services
             _employeeRepository = employeeRepository;
         }
 
-        public async Task<Employee?> GetEmployee(string email, string password)
+        public async Task<Employee?> GetEmployeeLogin(string email, string password)
         {
             var employee = await _employeeRepository
                .FindOne(x => (x.Email == email)
@@ -21,6 +21,18 @@ namespace Fiap.Hackatoon.Identity.Domain.Services
 
             if (employee is null) return null;
             return employee;
+        }
+
+        public async Task<Employee?> GetEmployeeByEmail(string email)
+        {
+          return  await _employeeRepository
+              .FindOne(x => (x.Email == email));
+        }
+
+        public async Task<Employee?> GetEmployeeById(int id)
+        {
+            return await _employeeRepository.FindOne(x => x.Id == id);
+            
         }
     }
 }

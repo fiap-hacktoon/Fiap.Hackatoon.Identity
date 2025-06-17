@@ -34,10 +34,12 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
             _logger.LogInformation($"Start Login: {clientLoginDto.EmailOrDocument}");
             try
             {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
-
+                if (!ModelState.IsValid) return BadRequest(ModelState);                
                 _logger.LogInformation($"Login: {clientLoginDto.EmailOrDocument}");
                 var token = await _clientApplication.Login(clientLoginDto.EmailOrDocument, clientLoginDto.Password);
+
+                if (string.IsNullOrEmpty(token))
+                    return Unauthorized();
 
                 return Ok(token);
             }
@@ -49,7 +51,7 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
         }
 
         [HttpPost("Add")]
-        public async Task<IActionResult> Add(ClientDto clientDto)
+        public async Task<IActionResult> Add(ClientCreateDto clientDto)
         {
             _logger.LogInformation($"Start add client: {clientDto.Email}");
             try
@@ -69,15 +71,19 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
                 return BadRequest($"Erro ao tentar efeutar o cadastro do cliente. {ex.Message}");
             }
         }
-        [Authorize(Roles = "Manager,Attendant,Kitchen")]
-        [HttpGet("GetClientById")]
+        [Authorize(Roles = "Manager,Attendant,Kitchen,Client")]
+        [HttpGet("GetClientById/{id:int}")]
         public async Task<IActionResult> GetClientById(int id)
         {
             _logger.LogInformation($"Start GetClientById: {id}");
             try
             {
                 var client = await _clientService.GetClientById(id);
-                return Ok(_mapper.Map<ClientDto>(client));
+
+                if (client is not null)
+                    return Ok(_mapper.Map<ClientDto>(client));
+                else
+                    return NotFound();
             }
             catch (Exception ex)
             {

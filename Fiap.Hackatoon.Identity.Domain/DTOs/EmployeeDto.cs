@@ -8,15 +8,13 @@ using System.Threading.Tasks;
 
 namespace Fiap.Hackatoon.Identity.Domain.DTOs
 {
-    public class ClientDto
+    public class EmployeeDto
     {
-
-        private int Id { get; set; }
+    
+        public int Id { get; set; }
         public TypeRole TypeRole { get; set; }        
-        public string Name { get; set; }
+        public string Name { get; set; }        
         public string Email { get; set; }        
-        public string Document { get; set; }        
-        public string Password { get; set; }                
-        public DateTime Birth { get; set; }
+        public string Password { get; set; }
     }
 }

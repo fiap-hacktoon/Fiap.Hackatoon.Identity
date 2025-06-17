@@ -23,7 +23,6 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
             });
 
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen(c => {});
 
             services.UseHttpClientMetrics();
 
@@ -33,14 +32,13 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
         }
 
         public static void UseApiConfiguration(this WebApplication app, IWebHostEnvironment env)
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+        {      
             app.UseHealthChecks("/health");
             app.UseMetricServer();
             app.UseHttpMetrics();
             app.UseHttpsRedirection();            
             app.MapControllers();
+            app.UseAuthConfiguration();
         }
     }
 }

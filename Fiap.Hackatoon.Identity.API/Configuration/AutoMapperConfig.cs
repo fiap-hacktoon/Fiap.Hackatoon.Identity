@@ -8,7 +8,13 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
     {
         public AutoMapperConfig()
         {
+            CreateMap<ClientCreateDto, Client>().ReverseMap();
             CreateMap<ClientDto, Client>().ReverseMap();
+
+            CreateMap<EmployeeCreateDto, Employee>().ReverseMap();
+            CreateMap<EmployeeDto, Employee>().ReverseMap();
+
         }
     }
 }
+

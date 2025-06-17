@@ -23,10 +23,10 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
         {
             try
             {
-                var user = await _employeeService.GetEmployee(email, password);
+                var user = await _employeeService.GetEmployeeLogin(email, password);
 
                 if (user is null)
-                    throw new Exception("Usuário ou senha invalido");
+                    return null;
 
                 var token = _tokenApplication.GenerateToken(user);
 

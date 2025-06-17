@@ -30,12 +30,11 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
                 var user = await _clientService.GetClientLogin(search, password);
 
                 if (user is null)
-                    throw new Exception("Usuário ou senha invalido");
-
+                    return null;
+             
                 var token = _tokenApplication.GenerateToken(user);
 
                 return token;
-
             }
             catch (Exception)
             {
@@ -43,7 +42,7 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
                 throw;
             }
         }
-        public async Task<bool> AddClient(ClientDto ClientDto)
+        public async Task<bool> AddClient(ClientCreateDto ClientDto)
         {
             var client = await _clientService.GetClientByEmailOrDocument(ClientDto.Email, ClientDto.Document);
 
@@ -55,3 +54,4 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
         }
     }
 }
+

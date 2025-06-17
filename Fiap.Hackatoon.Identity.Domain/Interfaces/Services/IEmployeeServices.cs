@@ -4,6 +4,8 @@ namespace Fiap.Hackatoon.Identity.Domain.Interfaces.Services
 {
     public interface IEmployeeService
     {
-        Task<Employee?> GetEmployee(string email, string password);
+        Task<Employee?> GetEmployeeLogin(string email, string password);
+        Task<Employee?> GetEmployeeById(int id);
+        Task<Employee?> GetEmployeeByEmail(string email);
     }
 }

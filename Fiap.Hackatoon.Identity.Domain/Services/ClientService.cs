@@ -35,11 +35,7 @@ namespace Fiap.Hackatoon.Identity.Domain.Services
 
         public async Task<Client?> GetClientById(int id)
         {
-
-            var client = await _clientRepository.FindOne(x => x.Id == id);
-            if (client is null) return null;
-            return client;
-
+          return await _clientRepository.FindOne(x => x.Id == id);          
         }
     }
 }
