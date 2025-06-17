@@ -34,8 +34,8 @@ jobs:
       - name: Build and Push Docker images
         uses: docker/build-push-action@v5.0.0
         with:
-          context: .
-          tags: 'rmahlow/fiaphackatoonidentity:latest'
+          context: ./Fiap.Hackatoon.Identity/Fiap.Hackatoon.Identity.API
+          tags: 'rmahlow/fiaphackatoonidentityapi:latest'
           push: true
 
       - name: Restore dependencies
