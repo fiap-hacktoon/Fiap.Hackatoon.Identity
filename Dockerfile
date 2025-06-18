@@ -6,6 +6,7 @@ USER $APP_UID
 WORKDIR /app
 EXPOSE 8081
 ENV ASPNETCORE_URLS=http://*:8081
+ENV ASPNETCORE_ENVIRONMENT=Development
 
 
 # This stage is used to build the service project

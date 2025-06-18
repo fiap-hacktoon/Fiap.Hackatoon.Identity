@@ -25,32 +25,5 @@ spec:
             memory: 512Mi
           requests:
             cpu: "0.2"
-            memory: 256Mi
-        env:
-        - name: ConnectionStrings__DefaultConnection
-          valueFrom:
-            secretKeyRef:
-              name: identity-api-secrets
-              key: DefaultConnection
-        - name: SecretJWT
-          valueFrom:
-            secretKeyRef:
-              name: identity-api-secrets
-              key: SecretJWT
-        - name: RabbitMq__UserName
-          valueFrom:
-            secretKeyRef:
-              name: identity-api-secrets
-              key: User
-        - name: RabbitMq__Password
-          valueFrom:
-            secretKeyRef:
-              name: identity-api-secrets
-              key: Password              
-        - name: RabbitMq__HostName
-          valueFrom:
-            configMapKeyRef: 
-              name: identity-api-configmap
-              key: "Server"        
-        
+            memory: 256Mi     
        
