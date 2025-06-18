@@ -11,7 +11,7 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
     public static class ApiConfiguration
     {
         public static void AddApiConfiguration(this IServiceCollection services, IConfiguration configuration)
-        {
+        {            
             services.AddDbContext<IdentityContext>(options =>
               options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 

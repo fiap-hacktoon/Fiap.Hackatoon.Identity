@@ -30,37 +30,27 @@ spec:
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
-              name: contact-insert-producer-api-secrets
+              name: identity-api-secrets
               key: DefaultConnection
         - name: SecretJWT
           valueFrom:
             secretKeyRef:
-              name: contact-insert-producer-api-secrets
+              name: identity-api-secrets
               key: SecretJWT
-        - name: MassTransit__User
+        - name: RabbitMq__UserName
           valueFrom:
             secretKeyRef:
-              name: contact-insert-producer-api-secrets
+              name: identity-api-secrets
               key: User
-        - name: MassTransit__Password
+        - name: RabbitMq__Password
           valueFrom:
             secretKeyRef:
-              name: contact-insert-producer-api-secrets
-              key: Password
-        - name: MassTransit__QueueName
+              name: identity-api-secrets
+              key: Password              
+        - name: RabbitMq__HostName
           valueFrom:
             configMapKeyRef: 
-              name: "contact-insert-producer-api-configmap"
-              key: "QueueName"        
-        - name: MassTransit__Server
-          valueFrom:
-            configMapKeyRef: 
-              name: "contact-insert-producer-api-configmap"
-              key: "Server"
-        - name: "Integrations__ContactConsult__BasePath"
-          valueFrom:
-            configMapKeyRef: 
-              name: "contact-insert-producer-api-configmap"
-              key: "BasePath"
+              name: identity-api-configmap
+              key: "Server"        
         
        

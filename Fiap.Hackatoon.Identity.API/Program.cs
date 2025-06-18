@@ -2,6 +2,7 @@ using Fiap.Hackatoon.Identity.API.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddApiConfiguration(builder.Configuration);
 
 builder.Services.AddJwtConfiguration(builder.Configuration);
