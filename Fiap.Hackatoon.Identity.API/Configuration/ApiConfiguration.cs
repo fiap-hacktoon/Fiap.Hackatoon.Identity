@@ -36,7 +36,7 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
             app.UseHealthChecks("/health");
             app.UseMetricServer();
             app.UseHttpMetrics();
-            app.UseHttpsRedirection();            
+            //app.UseHttpsRedirection();            
             app.MapControllers();
             app.UseAuthConfiguration();
         }
