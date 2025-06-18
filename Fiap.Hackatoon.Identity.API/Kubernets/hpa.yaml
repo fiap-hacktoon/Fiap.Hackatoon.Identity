@@ -1,13 +1,13 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: kubernetes-api-hpa
+  name: identity-api-hpa
   namespace: default  # Substitua pelo seu namespace, se necessário
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: kubernetes-api-deployment  # Nome do seu deployment
+    name: identity-api-deployment  # Nome do seu deployment
   minReplicas: 3  # Número mínimo de réplicas
   maxReplicas: 10  # Número máximo de réplicas
   metrics:
