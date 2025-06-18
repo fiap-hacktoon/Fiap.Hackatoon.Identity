@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-api-deployment  # Nome do Deployment
+  annotations:
+    autor: Rodrigo Mahlow 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identity-api
+  template:
+    metadata:
+      labels:
+        app: identity-api
+    spec:
+      containers:
+      - name: identity-api
+        image: rmahlow/fiaphackatoonidentityapi:latest
+        ports:
+        - containerPort: 8080 
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 512Mi
+          requests:
+            cpu: "0.2"
+            memory: 256Mi
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: contact-insert-producer-api-secrets
+              key: DefaultConnection
+        - name: SecretJWT
+          valueFrom:
+            secretKeyRef:
+              name: contact-insert-producer-api-secrets
+              key: SecretJWT
+        - name: MassTransit__User
+          valueFrom:
+            secretKeyRef:
+              name: contact-insert-producer-api-secrets
+              key: User
+        - name: MassTransit__Password
+          valueFrom:
+            secretKeyRef:
+              name: contact-insert-producer-api-secrets
+              key: Password
+        - name: MassTransit__QueueName
+          valueFrom:
+            configMapKeyRef: 
+              name: "contact-insert-producer-api-configmap"
+              key: "QueueName"        
+        - name: MassTransit__Server
+          valueFrom:
+            configMapKeyRef: 
+              name: "contact-insert-producer-api-configmap"
+              key: "Server"
+        - name: "Integrations__ContactConsult__BasePath"
+          valueFrom:
+            configMapKeyRef: 
+              name: "contact-insert-producer-api-configmap"
+              key: "BasePath"
+        
+       

@@ -1,0 +1,28 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-api-nodeport
+spec:
+  selector:
+    app: identity-api
+  ports:
+    - protocol: TCP
+      port: 80           # Porta acessada externamente
+      targetPort: 8080   # Porta do container
+      nodePort: 30081    # Porta exposta no n� (opcional)
+  type: NodePort
+---
+# Service LoadBalancer: Acesso externo gerenciado (em nuvem)
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-api-lb
+spec:
+  selector:
+    app: identity-api
+  ports:
+    - protocol: TCP
+      port: 5001           # Porta do servi�o
+      targetPort: 8080   # Porta do container
+  type: LoadBalancer
