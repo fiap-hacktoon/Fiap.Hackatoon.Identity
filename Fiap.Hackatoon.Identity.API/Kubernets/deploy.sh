@@ -6,6 +6,12 @@ kubectl apply -f RabbitmqDeployment.yaml  # Aplica o Service da aplicação
 echo "🚪 Aplicando Rabbitmq Service..."
 kubectl apply -f RabbitmqService.yaml  # Aplica o Service da aplicação
 
+echo "🚪 Aplicando SQl Deployment.."
+kubectl apply -f SqlDeployment.yaml  # Aplica o Service da aplicação
+
+echo "🚪 Aplicando Sql Service..."
+kubectl apply -f SQlServices.yaml  # Aplica o Service da aplicação
+
 echo "🔐 Aplicando Secret da aplicação..."
 kubectl apply -f app-secrets.yaml  # Adiciona o Secret
 
@@ -17,5 +23,8 @@ kubectl apply -f Deployment.yaml  # Aplica o Deployment da aplicação
 
 echo "🚪 Aplicando Service da aplicação..."
 kubectl apply -f Service.yaml  # Aplica o Service da aplicação
+
+echo "🚪 Aplicando Service da aplicação..."
+kubectl apply -f hpa.yaml  # Aplica o Service da aplicação
 
 echo "✅ Tudo aplicado com sucesso!"

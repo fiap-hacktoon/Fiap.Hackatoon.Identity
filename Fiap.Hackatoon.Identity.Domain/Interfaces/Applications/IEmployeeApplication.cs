@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,5 +10,6 @@ namespace Fiap.Hackatoon.Identity.Domain.Interfaces.Applications
     public interface IEmployeeApplication
     {
         Task<string> Login(string email, string password);
+        Task<bool> AddEmployee(EmployeeCreateDto employeeCreate);
     }
 }

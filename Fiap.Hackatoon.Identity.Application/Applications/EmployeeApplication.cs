@@ -1,11 +1,9 @@
-﻿using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
+﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
+using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
 using Fiap.Hackatoon.Identity.Domain.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MassTransit;
+
 
 namespace Fiap.Hackatoon.Identity.Application.Applications
 {
@@ -13,10 +11,13 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
     {
         private readonly IEmployeeService _employeeService;
         private readonly ITokenApplication _tokenApplication;
+        private readonly IBus _bus;
 
-        public EmployeeApplication(IEmployeeService employeeService)
+        public EmployeeApplication(IEmployeeService employeeService, IBus bus, ITokenApplication tokenApplication)
         {
             _employeeService = employeeService;
+            _bus = bus;
+            _tokenApplication = tokenApplication;
         }
 
         public async Task<string> Login(string email, string password)
@@ -38,6 +39,19 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
                 throw;
             }
+        }
+
+
+        public async Task<bool> AddEmployee(EmployeeCreateDto employeeCreate)
+        {
+
+            var employee = await _employeeService.GetEmployeeByEmail(employeeCreate.Email);
+
+            if (employee is not null) throw new Exception("O email já existe cadastrado");
+
+            await _bus.Publish(employee);
+
+            return true;            
         }
     }
 }

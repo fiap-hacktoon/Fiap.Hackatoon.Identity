@@ -71,6 +71,8 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
                 return BadRequest($"Erro ao tentar efeutar o cadastro do cliente. {ex.Message}");
             }
         }
+
+
         [Authorize(Roles = "Manager,Attendant,Kitchen,Client")]
         [HttpGet("GetClientById/{id:int}")]
         public async Task<IActionResult> GetClientById(int id)

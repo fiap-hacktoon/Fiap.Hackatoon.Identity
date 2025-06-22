@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using Fiap.Hackatoon.Identity.Application.Applications;
 using Fiap.Hackatoon.Identity.Domain.DTOs;
+using Fiap.Hackatoon.Identity.Domain.Entities;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
 using Fiap.Hackatoon.Identity.Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -49,22 +52,32 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
             }
         }
 
+
+        [Authorize(Roles = "Manager")]
         [HttpPost("Add")]
         public async Task<IActionResult> Add([FromBody] EmployeeCreateDto employeeCreateDto)
         {
-            _logger.LogInformation($"Start add employee: {employeeCreateDto.Email}");
+            _logger.LogInformation($"Start add client: {employeeCreateDto.Email}");
             try
             {
-                //var employee = _employeeService.GetEmployeeById()
-                return StatusCode(201);
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                var addClient = await _employeeApplication.AddEmployee(employeeCreateDto);
+
+                if (addClient)
+                    return StatusCode(201);
+                else
+                    return BadRequest();
             }
             catch (Exception ex)
             {
-                _logger.LogInformation($"Add employee failed:. Error: ${ex.Message ?? ""}");
-                return BadRequest("Erro ao tentar efeutar o login");                
+                _logger.LogInformation($"Add employss failed:. Error: ${ex.Message ?? ""}");
+                return BadRequest($"Erro ao tentar efeutar o cadastro do employee. {ex.Message}");
             }
         }
 
+
+        [Authorize(Roles = "Manager")]
         [HttpGet("GetEmployeeById/{id:int}")]
         public async Task<IActionResult> GetEmployeeById(int id)
         {
