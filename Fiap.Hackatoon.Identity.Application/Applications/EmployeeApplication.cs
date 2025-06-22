@@ -49,7 +49,7 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
             if (employee is not null) throw new Exception("O email já existe cadastrado");
 
-            await _bus.Publish(employee);
+            await _bus.Publish(employeeCreate);
 
             return true;            
         }
