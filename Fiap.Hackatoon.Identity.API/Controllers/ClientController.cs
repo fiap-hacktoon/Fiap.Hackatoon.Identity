@@ -94,8 +94,8 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
             }
         }
 
-        [Authorize(Roles = "Manager,Attendant,Kitchen,Client")]
-        [HttpGet("GetClientById/{email:string}")]
+        [Authorize(Roles = "Manager,Kitchen")]
+        [HttpGet("GetClientByEmail/{email:string}")]
         public async Task<IActionResult> GetClientByEmail(string email)
         {
             _logger.LogInformation($"Start GetClientByEmail: {email}");

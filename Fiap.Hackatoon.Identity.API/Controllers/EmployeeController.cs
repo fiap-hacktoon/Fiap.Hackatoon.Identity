@@ -101,7 +101,7 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
         }
 
         [Authorize(Roles = "Manager")]
-        [HttpGet("GetEmployeeById/{email:string}")]
+        [HttpGet("GetEmployeeByEmail/{email:string}")]
         public async Task<IActionResult> GetEmployeeByEmail(string email)
         {
 
