@@ -51,15 +51,6 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
             return true;
         }
-    }
-
-
-    public class DummyConsumer : IConsumer<ClientCreateDto>
-    {
-        public Task Consume(ConsumeContext<ClientCreateDto> context)
-        {
-            return Task.CompletedTask;
-        }
-    }
+    }   
 }
 

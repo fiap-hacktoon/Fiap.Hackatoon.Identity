@@ -11,8 +11,7 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
             var rabbitMqConfig = configuration.GetSection("RabbitMq").Get<RabbitMqConnection>();
 
             services.AddMassTransit(x =>
-            {
-                x.AddConsumer<DummyConsumer>();
+            {                
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(new Uri($"amqp://{rabbitMqConfig.HostName}:{rabbitMqConfig.Port}"), h => {

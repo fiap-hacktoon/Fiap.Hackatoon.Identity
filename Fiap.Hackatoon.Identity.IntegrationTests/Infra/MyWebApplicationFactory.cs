@@ -33,8 +33,7 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Infra
                 services.CreateSQLLite();
 
                 services.AddMassTransitTestHarness(x =>
-                {
-                    x.AddConsumer<DummyConsumer>();
+                {                    
                     x.UsingInMemory((context, cfg) =>
                     {
                         cfg.ConfigureEndpoints(context);
