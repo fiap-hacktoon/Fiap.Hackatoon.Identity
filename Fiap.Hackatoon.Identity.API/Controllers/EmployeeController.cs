@@ -95,7 +95,30 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogInformation($"Error GetEmployeeById ${ex.Message ?? ""}");
-                throw;
+                return BadRequest("Erro ao tentar consultar o employee por id");
+            }
+
+        }
+
+        [Authorize(Roles = "Manager")]
+        [HttpGet("GetEmployeeById/{email:string}")]
+        public async Task<IActionResult> GetEmployeeByEmail(string email)
+        {
+
+            _logger.LogInformation($"Start GetEmployeeByEmail: {email}");
+            try
+            {
+                var client = await _employeeService.GetEmployeeByEmail(email);
+
+                if (client is not null)
+                    return Ok(_mapper.Map<EmployeeDto>(client));
+                else
+                    return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation($"Error GetEmployeeByEmail ${ex.Message ?? ""}");
+                return BadRequest("Erro ao tentar consultar o employee por id");
             }
 
         }

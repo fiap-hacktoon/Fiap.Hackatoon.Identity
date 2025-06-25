@@ -28,7 +28,7 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
 
             services.Configure<RabbitMqConnection>(configuration.GetSection("RabbitMq"));
 
-            services.AddRabitMqConfiguration(configuration);
+           
         }
 
         public static void UseApiConfiguration(this WebApplication app, IWebHostEnvironment env)

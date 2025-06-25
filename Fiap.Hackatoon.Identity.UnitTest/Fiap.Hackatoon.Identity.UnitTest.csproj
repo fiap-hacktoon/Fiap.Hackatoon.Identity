@@ -11,6 +11,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="6.0.0" />
+		<PackageReference Include="MassTransit" Version="8.5.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
 		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="xunit" Version="2.5.3" />
@@ -19,6 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Fiap.Hackatoon.Identity.API\Fiap.Hackatoon.Identity.API.csproj" />
 	  <ProjectReference Include="..\Fiap.Hackatoon.Identity.Application\Fiap.Hackatoon.Identity.Application.csproj" />
 	  <ProjectReference Include="..\Fiap.Hackatoon.Identity.Domain\Fiap.Hackatoon.Identity.Domain.csproj" />
 	  <ProjectReference Include="..\Fiap.Hackatoon.Identity.Infrastructure\Fiap.Hackatoon.Identity.Infrastructure.csproj" />

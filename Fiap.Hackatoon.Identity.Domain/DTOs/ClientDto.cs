@@ -11,7 +11,7 @@ namespace Fiap.Hackatoon.Identity.Domain.DTOs
     public class ClientDto
     {
 
-        private int Id { get; set; }
+        public int Id { get; set; }
         public TypeRole TypeRole { get; set; }        
         public string Name { get; set; }
         public string Email { get; set; }        

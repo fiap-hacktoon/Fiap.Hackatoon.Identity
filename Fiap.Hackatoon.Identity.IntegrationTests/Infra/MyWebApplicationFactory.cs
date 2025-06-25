@@ -3,47 +3,60 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Fiap.Hackatoon.Identity.Application.Applications;
 using Fiap.Hackatoon.Identity.Infrastructure.Data;
+using MassTransit;
+using MassTransit.Testing;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 
 namespace Fiap.Hackatoon.Identity.IntegrationTests.Infra
 {
-    public class MyWebApplicationFactory<T, TContext> : IClassFixture<WebApplicationFactory<T>> where T : class where TContext : DbContext
+    public class MyWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
     {
-        protected readonly WebApplicationFactory<T> Factory;
-        protected IServiceCollection _servicesCollection { get; set; }
-
-        public MyWebApplicationFactory(WebApplicationFactory<T> factory)
+        public ITestHarness BusTestHarness { get; private set; }
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            Factory = factory.WithWebHostBuilder(builder =>
+            builder.UseEnvironment("IntegrationTesting");
+
+            builder.ConfigureServices(services =>
             {
-                builder.ConfigureServices(services =>
+                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<IdentityContext>));
+                if (descriptor != null)
+                    services.Remove(descriptor);
+
+                services.CreateSQLLite();
+
+                services.AddMassTransitTestHarness(x =>
                 {
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<IdentityContext>));
-                    if (descriptor != null)
-                        services.Remove(descriptor);
-
-                    services.CreateSQLLite();
-
-                    _servicesCollection = services;
-
-                    var sp = services.BuildServiceProvider();
-
-                    using (var scope = sp.CreateScope())
+                    x.AddConsumer<DummyConsumer>();
+                    x.UsingInMemory((context, cfg) =>
                     {
-                        var scopedServices = scope.ServiceProvider;
-                        var db = scopedServices.GetRequiredService<IdentityContext>();
-                        CreateContext(db);
-                    }
-
+                        cfg.ConfigureEndpoints(context);
+                        cfg.ReceiveEndpoint("test-endpoint", e => { });
+                    });
                 });
-            });
 
-        }
+
+                var sp = services.BuildServiceProvider();
+
+                using (var scope = sp.CreateScope())
+                {
+                    var scopedServices = scope.ServiceProvider;
+                    var db = scopedServices.GetRequiredService<IdentityContext>();
+
+                    BusTestHarness = scopedServices.GetRequiredService<ITestHarness>();                                        
+
+                    CreateContext(db);
+                }
+
+            });
+        }        
 
         protected void CreateContext(IdentityContext context)
         {

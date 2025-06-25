@@ -92,6 +92,27 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
                 _logger.LogInformation($"Error GetClientById ${ex.Message ?? ""}");
                 throw;
             }
+        }
+
+        [Authorize(Roles = "Manager,Attendant,Kitchen,Client")]
+        [HttpGet("GetClientById/{email:string}")]
+        public async Task<IActionResult> GetClientByEmail(string email)
+        {
+            _logger.LogInformation($"Start GetClientByEmail: {email}");
+            try
+            {
+                var client = await _clientService.GetClientByEmail(email);
+
+                if (client is not null)
+                    return Ok(_mapper.Map<ClientDto>(client));
+                else
+                    return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation($"Error GetClientByEmail ${ex.Message ?? ""}");
+                throw;
+            }
 
         }
     }

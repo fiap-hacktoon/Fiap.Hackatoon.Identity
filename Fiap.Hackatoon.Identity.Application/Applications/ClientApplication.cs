@@ -12,9 +12,9 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
         private readonly IClientService _clientService;
         private readonly ITokenApplication _tokenApplication;
-        private readonly IBus _bus;
+        private readonly IPublishEndpoint _bus;
 
-        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication, IBus bus)
+        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication, IPublishEndpoint bus)
         {
             _clientService = clientService;
             _tokenApplication = tokenApplication;
@@ -50,6 +50,15 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
             await _bus.Publish(ClientDto);
 
             return true;
+        }
+    }
+
+
+    public class DummyConsumer : IConsumer<ClientCreateDto>
+    {
+        public Task Consume(ConsumeContext<ClientCreateDto> context)
+        {
+            return Task.CompletedTask;
         }
     }
 }

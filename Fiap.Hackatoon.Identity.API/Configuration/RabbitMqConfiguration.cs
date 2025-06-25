@@ -1,4 +1,5 @@
-﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
+﻿using Fiap.Hackatoon.Identity.Application.Applications;
+using Fiap.Hackatoon.Identity.Domain.DTOs;
 using MassTransit;
 namespace Fiap.Hackatoon.Identity.API.Configuration
 {
@@ -11,6 +12,7 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
 
             services.AddMassTransit(x =>
             {
+                x.AddConsumer<DummyConsumer>();
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(new Uri($"amqp://{rabbitMqConfig.HostName}:{rabbitMqConfig.Port}"), h => {

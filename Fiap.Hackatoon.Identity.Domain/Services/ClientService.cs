@@ -33,6 +33,15 @@ namespace Fiap.Hackatoon.Identity.Domain.Services
             return client;
         }
 
+        public async Task<Client?> GetClientByEmail(string email)
+        {
+            var client = await _clientRepository
+               .FindOne(x => x.Email == email);
+
+            if (client is null) return null;
+            return client;
+        }
+
         public async Task<Client?> GetClientById(int id)
         {
           return await _clientRepository.FindOne(x => x.Id == id);          
