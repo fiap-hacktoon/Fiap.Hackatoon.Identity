@@ -124,7 +124,7 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
         }
 
         [Authorize(Roles = "Manager,Attendant,Kitchen")]
-        [HttpPut("UpdateClient/{employeeId:int}")]
+        [HttpPut("UpdateEmployee/{employeeId:int}")]
         public async Task<IActionResult> UpdateEmployee(int employeeId, [FromBody] EmployeeUpdateDto employeeUpdateDto)
         {
             _logger.LogInformation($"update client: {employeeUpdateDto.Email}");

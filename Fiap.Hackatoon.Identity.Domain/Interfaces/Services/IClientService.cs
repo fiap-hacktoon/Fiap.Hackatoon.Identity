@@ -8,5 +8,8 @@ namespace Fiap.Hackatoon.Identity.Domain.Interfaces.Services
         Task<Client?> GetClientByEmailOrDocument(string email, string document);
         Task<Client?> GetClientById(int id);
         Task<Client?> GetClientByEmail(string email);
-    }
+        Task<Client?> GetClientByDocument(string document);
+
+
+        }
 }

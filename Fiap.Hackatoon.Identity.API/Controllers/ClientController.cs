@@ -19,14 +19,16 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
         private readonly IClientApplication _clientApplication;
         private readonly IClientService _clientService;
         private readonly ILogger<ClientController> _logger;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public ClientController(IClientApplication clientApplication, ILogger<ClientController> logger, IMapper mapper, IClientService clientService)
+        public ClientController(IClientApplication clientApplication, ILogger<ClientController> logger, IMapper mapper, IClientService clientService, IUserService userService)
         {
             _clientApplication = clientApplication;
             _logger = logger;
             _mapper = mapper;
             _clientService = clientService;
+            _userService = userService;
         }
 
         [HttpPost("login")]
@@ -118,14 +120,16 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
 
         [Authorize(Roles = "Client")]
         [HttpPut("UpdateClient/{clientId:int}")]        
-        public async Task<IActionResult> UpdateClient(int clienteId, [FromBody] ClientUpdateDto clientUpdateDto)
+        public async Task<IActionResult> UpdateClient(int clientId, [FromBody] ClientUpdateDto clientUpdateDto)
         {
+            if (_userService.GetUserId() != clientId.ToString()) return Unauthorized();
+
             _logger.LogInformation($"update client: {clientUpdateDto.Email}");
             try
             {
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
-                var addClient = await _clientApplication.UpdateClient(clienteId, clientUpdateDto);
+                var addClient = await _clientApplication.UpdateClient(clientId, clientUpdateDto);
 
                 if (addClient)
                     return NoContent();

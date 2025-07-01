@@ -61,11 +61,11 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
             var employeeUpdate =  await _employeeService.GetEmployeeById(employeeId);
 
 
-            if (employeeUpdate is null) throw new Exception($"Employee com  id:{employeeId} não encontrado");
+            if (employeeUpdate is null) throw new Exception($"Employee com id:{employeeId} não encontrado");
 
             if (employeeUpdate.Email != employeeUpdateDto.Email)
             {
-                if (await _employeeService.GetEmployeeByEmail(employeeUpdateDto.Email) != null) throw new Exception($"O email {employeeUpdateDto.Email} já está sendo usando para outro employee");
+                if (await _employeeService.GetEmployeeByEmail(employeeUpdateDto.Email) != null) throw new Exception($"O email {employeeUpdateDto.Email} já está sendo usado para outro employee");
             }
 
             await _bus.SendToBus(employeeUpdateDto, _rabbitMqConnection.QueueNameEmployeeUpdate);

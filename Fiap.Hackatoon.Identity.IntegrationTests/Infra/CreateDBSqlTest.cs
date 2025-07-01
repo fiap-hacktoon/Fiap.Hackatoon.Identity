@@ -14,7 +14,8 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Infra
     {
         public static void CreateSQLLite(this IServiceCollection services)
         {
-            var connectionString = "Data source=TesteContext;Mode=Memory;Cache=Shared";
+            var databaseName = Guid.NewGuid().ToString();
+            var connectionString = $"Data source={databaseName};Mode=Memory;Cache=Shared";
             var connection = new SqliteConnection(connectionString);
 
             connection.Open();

@@ -17,16 +17,14 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
         private readonly IClientService _clientService;
         private readonly ITokenApplication _tokenApplication;        
         private readonly IBusService _bus;        
-        private readonly RabbitMqConnection _rabbitMqConnection;
-        private readonly IUserService _userService;
+        private readonly RabbitMqConnection _rabbitMqConnection;        
 
-        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication, IBusService bus, IOptions<RabbitMqConnection> rabbitMqOptions, IUserService userService)
+        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication, IBusService bus, IOptions<RabbitMqConnection> rabbitMqOptions)
         {
             _clientService = clientService;
             _tokenApplication = tokenApplication;
             _bus = bus;
-            _rabbitMqConnection = rabbitMqOptions.Value;
-            _userService = userService;
+            _rabbitMqConnection = rabbitMqOptions.Value;            
         }
 
         public async Task<string> Login(string search, string password)
@@ -63,15 +61,23 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
         {
             var clienteUpdate = await _clientService.GetClientById(clienteId);            
 
-            if (clienteUpdate is null) throw new Exception($"client com  id:{clienteId} não encontrado");
+            if (clienteUpdate is null) throw new Exception($"Client com id:{clienteId} não encontrado");
 
-            if (clienteUpdate.Email != clientUpdateDto.Email || clientUpdateDto.Document != clientUpdateDto.Document)
+            if (clienteUpdate.Email != clientUpdateDto.Email) 
             {
 
-                var exist = await _clientService.GetClientByEmailOrDocument(clientUpdateDto.Email, clientUpdateDto.Document);
+                var exist = await _clientService.GetClientByEmail(clientUpdateDto.Email);
 
                 if(exist != null && exist.Id != clienteId)
-                    throw new Exception($"O email {clientUpdateDto.Email} já está sendo usando para outro cliente");
+                    throw new Exception($"O email {clientUpdateDto.Email} já está sendo usado para outro cliente");
+            }
+
+            if(clientUpdateDto.Document != clientUpdateDto.Document)
+            {
+                var exist = await _clientService.GetClientByDocument(clientUpdateDto.Document);
+
+                if (exist != null && exist.Id != clienteId)
+                    throw new Exception($"O documento {clientUpdateDto.Email} já está sendo usado para outro cliente");
             }
 
             await _bus.SendToBus(clientUpdateDto, _rabbitMqConnection.QueueNameClienteUpdate);

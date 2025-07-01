@@ -4,23 +4,24 @@ using Fiap.Hackatoon.Identity.Domain.Entities;
 using Fiap.Hackatoon.Identity.Domain.Enumerators;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
-using MassTransit;
+using MassTransit; // Ainda necessário para IBus (se outras classes o usarem)
+using Microsoft.Extensions.Options; // Para mockar IOptions
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Fiap.Hackatoon.Identity.UnitTest.Application
 {
-
     public class ClientApplicationTests
     {
         private readonly Mock<IClientService> _mockClientService;
         private readonly Mock<ITokenApplication> _mockTokenApplication;
         private readonly Mock<IBusService> _mockBusService;
-        private readonly Mock<IBus> _mockBus;
+        private readonly Mock<IOptions<RabbitMqConnection>> _mockRabbitMqOptions;
         private readonly ClientApplication _clientApplication;
 
         public ClientApplicationTests()
@@ -28,13 +29,30 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             _mockClientService = new Mock<IClientService>();
             _mockTokenApplication = new Mock<ITokenApplication>();
             _mockBusService = new Mock<IBusService>();
-            _mockBus = new Mock<IBus>();
+            _mockRabbitMqOptions = new Mock<IOptions<RabbitMqConnection>>();
+
+            // Configura o mock do IOptions<RabbitMqConnection> para retornar sua configuração exata
+            _mockRabbitMqOptions.Setup(o => o.Value).Returns(new RabbitMqConnection
+            {
+                HostName = "localhost", // Valores mockados, podem ser quaisquer strings válidas
+                Port = "5672",
+                UserName = "guest",
+                Password = "guest",
+                QueueNameClienteCreate = "fila_cliente_criado", // Usando o nome da sua propriedade
+                QueueNameClienteUpdate = "fila_cliente_atualizado", // Usando o nome da sua propriedade
+                QueueNameEmployeeCreate = "fila_funcionario_criado", // Usando o nome da sua propriedade
+                QueueNameEmployeeUpdate = "fila_funcionario_atualizado" // Usando o nome da sua propriedade
+            });
+
             _clientApplication = new ClientApplication(
                 _mockClientService.Object,
-                _mockTokenApplication.Object,               
-                _mockBusService.Object
+                _mockTokenApplication.Object,
+                _mockBusService.Object,
+                _mockRabbitMqOptions.Object
             );
         }
+
+
 
         [Fact]
         public async Task Login_ShouldReturnToken_WhenClientIsValid()
@@ -42,7 +60,6 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             // Arrange
             string search = "test@example.com";
             string password = "password123";
-            // Usamos a entidade Client, que herda de User
             var client = new Client { Id = 1, Email = search, Password = password, TypeRole = TypeRole.Client, Document = "12345678900", Birth = DateTime.Now.AddYears(-20) };
             string expectedToken = "mocked_jwt_token_for_valid_client";
 
@@ -66,7 +83,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             string search = "invalid@example.com";
             string password = "wrongpassword";
 
-            _mockClientService.Setup(s => s.GetClientLogin(search, password)).ReturnsAsync((Client)null); // Retorna null
+            _mockClientService.Setup(s => s.GetClientLogin(search, password)).ReturnsAsync((Client)null);
 
             // Act
             var result = await _clientApplication.Login(search, password);
@@ -74,7 +91,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             // Assert
             Assert.Null(result);
             _mockClientService.Verify(s => s.GetClientLogin(search, password), Times.Once);
-            _mockTokenApplication.Verify(t => t.GenerateToken(It.IsAny<User>()), Times.Never); // Nenhuma tentativa de gerar token
+            _mockTokenApplication.Verify(t => t.GenerateToken(It.IsAny<User>()), Times.Never);
         }
 
         [Fact]
@@ -91,10 +108,10 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             _mockClientService.Verify(s => s.GetClientLogin(search, password), Times.Once);
             _mockTokenApplication.Verify(t => t.GenerateToken(It.IsAny<User>()), Times.Never);
         }
-
+     
 
         [Fact]
-        public async Task AddClient_ShouldReturnTrueAndPublishMessage_WhenClientDoesNotExist()
+        public async Task AddClient_ShouldReturnTrueAndSendToBus_WhenClientDoesNotExist()
         {
             // Arrange
             var clientDto = new ClientCreateDto
@@ -109,7 +126,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             };
 
             _mockClientService.Setup(s => s.GetClientByEmailOrDocument(clientDto.Email, clientDto.Document)).ReturnsAsync((Client)null);
-            _mockBus.Setup(b => b.Publish(It.IsAny<ClientCreateDto>(), default)).Returns(Task.CompletedTask);
+            _mockBusService.Setup(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>())).Returns(Task.CompletedTask);
 
             // Act
             var result = await _clientApplication.AddClient(clientDto);
@@ -117,9 +134,13 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             // Assert
             Assert.True(result);
             _mockClientService.Verify(s => s.GetClientByEmailOrDocument(clientDto.Email, clientDto.Document), Times.Once);
-            // Verifica se o método Publish foi chamado com o DTO correto
-            _mockBus.Verify(b => b.Publish(It.Is<ClientCreateDto>(dto =>
-                dto.Email == clientDto.Email && dto.Document == clientDto.Document), default), Times.Once);
+            // Verifica se SendToBus foi chamado com o DTO correto e o nome da fila correto
+            _mockBusService.Verify(b => b.SendToBus(
+                It.Is<ClientCreateDto>(dto =>
+                    dto.Email == clientDto.Email &&
+                    dto.Document == clientDto.Document),
+                "fila_cliente_criado"), // Usando o nome da fila da RabbitMqConnection
+                Times.Once);
         }
 
         [Fact]
@@ -136,7 +157,6 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
                 ConfirmPassword = "ExistingPassword",
                 Birth = new DateTime(1980, 1, 1)
             };
-            // Retorna um cliente existente para simular o cenário de duplicidade
             var existingClient = new Client { Id = 10, Email = clientDto.Email, Document = clientDto.Document };
 
             _mockClientService.Setup(s => s.GetClientByEmailOrDocument(clientDto.Email, clientDto.Document)).ReturnsAsync(existingClient);
@@ -145,11 +165,11 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             var exception = await Assert.ThrowsAsync<Exception>(() => _clientApplication.AddClient(clientDto));
             Assert.Equal("O email/document já existe cadastrado", exception.Message);
             _mockClientService.Verify(s => s.GetClientByEmailOrDocument(clientDto.Email, clientDto.Document), Times.Once);
-            _mockBus.Verify(b => b.Publish(It.IsAny<ClientCreateDto>(), default), Times.Never); // Não deve publicar se o cliente já existe
+            _mockBusService.Verify(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
-        public async Task AddClient_ShouldThrowException_WhenBusPublishFails()
+        public async Task AddClient_ShouldThrowException_WhenBusServiceSendFails()
         {
             // Arrange
             var clientDto = new ClientCreateDto
@@ -164,13 +184,131 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             };
 
             _mockClientService.Setup(s => s.GetClientByEmailOrDocument(clientDto.Email, clientDto.Document)).ReturnsAsync((Client)null);
-            _mockBus.Setup(b => b.Publish(It.IsAny<ClientCreateDto>(), default)).ThrowsAsync(new Exception("MassTransit publish simulation error"));
+            _mockBusService.Setup(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>())).ThrowsAsync(new Exception("BusService send error"));
 
             // Act & Assert
             await Assert.ThrowsAsync<Exception>(() => _clientApplication.AddClient(clientDto));
             _mockClientService.Verify(s => s.GetClientByEmailOrDocument(clientDto.Email, clientDto.Document), Times.Once);
-            _mockBus.Verify(b => b.Publish(It.IsAny<ClientCreateDto>(), default), Times.Once); // Verifica se a tentativa de publicação ocorreu
+            _mockBusService.Verify(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateClient_ShouldReturnTrueAndSendToBus_WhenClientExistsAndEmailNotChanged()
+        {
+            // Arrange
+            int clientId = 1;
+            var clientUpdateDto = new ClientUpdateDto
+            {
+                TypeRole = TypeRole.Client,
+                Name = "Updated Name",
+                Email = "original@example.com",
+                Document = "12345678900",
+                Birth = new DateTime(1990, 1, 1)
+            };
+            var existingClient = new Client { Id = clientId, Email = "original@example.com", Document = "12345678900" };
+
+            _mockClientService.Setup(s => s.GetClientById(clientId)).ReturnsAsync(existingClient);
+            _mockBusService.Setup(b => b.SendToBus(It.IsAny<ClientUpdateDto>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _clientApplication.UpdateClient(clientId, clientUpdateDto);
+
+            // Assert
+            Assert.True(result);
+            _mockClientService.Verify(s => s.GetClientById(clientId), Times.Once);
+            _mockClientService.Verify(s => s.GetClientByEmail(It.IsAny<string>()), Times.Never);
+            _mockBusService.Verify(b => b.SendToBus(
+                It.Is<ClientUpdateDto>(dto =>
+                    dto.Email == clientUpdateDto.Email &&
+                    dto.Document == clientUpdateDto.Document),
+                "fila_cliente_atualizado"), // Usando o nome da fila da RabbitMqConnection
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateClient_ShouldReturnTrueAndSendToBus_WhenClientExistsAndEmailChangedAndNewEmailIsUnique()
+        {
+            // Arrange
+            int clientId = 1;
+            var clientUpdateDto = new ClientUpdateDto
+            {
+                TypeRole = TypeRole.Client,
+                Name = "Updated Name",
+                Email = "newunique@example.com",
+                Document = "12345678900",
+                Birth = new DateTime(1990, 1, 1)
+            };
+            var existingClient = new Client { Id = clientId, Email = "old@example.com", Document = "12345678900" };
+
+            _mockClientService.Setup(s => s.GetClientById(clientId)).ReturnsAsync(existingClient);            
+            _mockBusService.Setup(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _clientApplication.UpdateClient(clientId, clientUpdateDto);
+
+            // Assert
+            Assert.True(result);
+            _mockClientService.Verify(s => s.GetClientById(clientId), Times.Once);         
+            _mockBusService.Verify(b => b.SendToBus(
+                It.Is<ClientUpdateDto>(dto =>
+                    dto.Email == clientUpdateDto.Email &&
+                    dto.Document == clientUpdateDto.Document),
+                "fila_cliente_atualizado"), // Usando o nome da fila da RabbitMqConnection
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateClient_ShouldThrowException_WhenClientNotFound()
+        {
+            // Arrange
+            int clientId = 999;
+            var clientUpdateDto = new ClientUpdateDto
+            {
+                TypeRole = TypeRole.Client,
+                Name = "Name",
+                Email = "email@example.com",
+                Document = "123",
+                Birth = DateTime.Now
+            };
+
+            _mockClientService.Setup(s => s.GetClientById(clientId)).ReturnsAsync((Client)null);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<Exception>(() => _clientApplication.UpdateClient(clientId, clientUpdateDto));
+            // Ajuste a mensagem de erro para "Client" se o seu código original usar "Client" em vez de "Employee"
+            Assert.Equal($"Client com id:{clientId} não encontrado", exception.Message);
+            _mockClientService.Verify(s => s.GetClientById(clientId), Times.Once);
+            _mockClientService.Verify(s => s.GetClientByEmail(It.IsAny<string>()), Times.Never);
+            _mockBusService.Verify(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>()), Times.Never);
+        }
+
+        
+
+        [Fact]
+        public async Task UpdateClient_ShouldThrowException_WhenBusServiceSendFails()
+        {
+            // Arrange
+            int clientId = 1;
+            var clientUpdateDto = new ClientUpdateDto
+            {
+                TypeRole = TypeRole.Client,
+                Name = "Updated Name",
+                Email = "unique@example.com",
+                Document = "12345678900",
+                Birth = new DateTime(1990, 1, 1)
+            };
+            var existingClient = new Client { Id = clientId, Email = "original@example.com", Document = "12345678900" };
+
+            _mockClientService.Setup(s => s.GetClientById(clientId)).ReturnsAsync(existingClient);
+            
+            _mockBusService.Setup(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>())).ThrowsAsync(new Exception("BusService update send error"));
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<Exception>(() => _clientApplication.UpdateClient(clientId, clientUpdateDto));
+            Assert.Equal("BusService update send error", exception.Message);
+            _mockClientService.Verify(s => s.GetClientById(clientId), Times.Once);
+            
+            _mockBusService.Verify(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>()), Times.Once);
         }
     }
 }
-
