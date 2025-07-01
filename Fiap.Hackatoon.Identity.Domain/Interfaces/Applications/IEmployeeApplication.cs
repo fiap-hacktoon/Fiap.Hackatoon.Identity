@@ -11,5 +11,6 @@ namespace Fiap.Hackatoon.Identity.Domain.Interfaces.Applications
     {
         Task<string> Login(string email, string password);
         Task<bool> AddEmployee(EmployeeCreateDto employeeCreate);
+        Task<bool> UpdateEmployee(int employeeId, EmployeeUpdateDto employeeUpdateDto);
     }
 }

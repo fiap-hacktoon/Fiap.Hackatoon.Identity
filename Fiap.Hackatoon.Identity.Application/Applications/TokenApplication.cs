@@ -3,6 +3,7 @@ using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 
@@ -25,6 +26,7 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
                 {
                     Subject = new System.Security.Claims.ClaimsIdentity(new[]
                     {
+                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.Id.ToString() ?? string.Empty),
                     new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.Email ?? string.Empty),
                     new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, user.TypeRole.ToString())
 

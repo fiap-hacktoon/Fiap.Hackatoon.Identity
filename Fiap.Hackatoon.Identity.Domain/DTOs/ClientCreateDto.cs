@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Fiap.Hackatoon.Identity.Domain.DTOs
 {
-    public class ClientCreateDto
+    public class ClientCreateDto: EventDto
     {   
         [Required(ErrorMessage = "O campo role é obrigatório")]
         public TypeRole TypeRole { get; set; }

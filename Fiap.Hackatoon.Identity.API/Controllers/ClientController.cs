@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 using System.Net;
 
 namespace Fiap.Hackatoon.Identity.API.Controllers
@@ -34,7 +35,7 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
             _logger.LogInformation($"Start Login: {clientLoginDto.EmailOrDocument}");
             try
             {
-                if (!ModelState.IsValid) return BadRequest(ModelState);                
+                if (!ModelState.IsValid) return BadRequest(ModelState);
                 _logger.LogInformation($"Login: {clientLoginDto.EmailOrDocument}");
                 var token = await _clientApplication.Login(clientLoginDto.EmailOrDocument, clientLoginDto.Password);
 
@@ -95,7 +96,7 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
         }
 
         [Authorize(Roles = "Manager,Kitchen")]
-        [HttpGet("GetClientByEmail/{email:string}")]
+        [HttpGet("GetClientByEmail/{email}")]
         public async Task<IActionResult> GetClientByEmail(string email)
         {
             _logger.LogInformation($"Start GetClientByEmail: {email}");
@@ -113,7 +114,29 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
                 _logger.LogInformation($"Error GetClientByEmail ${ex.Message ?? ""}");
                 throw;
             }
+        }
 
+        [Authorize(Roles = "Client")]
+        [HttpPut("UpdateClient/{clientId:int}")]        
+        public async Task<IActionResult> UpdateClient(int clienteId, [FromBody] ClientUpdateDto clientUpdateDto)
+        {
+            _logger.LogInformation($"update client: {clientUpdateDto.Email}");
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                var addClient = await _clientApplication.UpdateClient(clienteId, clientUpdateDto);
+
+                if (addClient)
+                    return NoContent();
+                else
+                    return BadRequest();
+            }            
+            catch (Exception ex)
+            {
+                _logger.LogInformation($"Update cliente failed:. Error: ${ex.Message ?? ""}");
+                return BadRequest($"Erro ao tentar efeutar a atuazliação do cliente. {ex.Message}");
+            }
         }
     }
 }

@@ -12,5 +12,6 @@ namespace Fiap.Hackatoon.Identity.Domain.Interfaces.Applications
     {
         Task<string> Login(string search, string password);
         Task<bool> AddClient(ClientCreateDto ClientDto);
+        Task<bool> UpdateClient(int clienteId, ClientUpdateDto clientUpdateDto);
     }
 }

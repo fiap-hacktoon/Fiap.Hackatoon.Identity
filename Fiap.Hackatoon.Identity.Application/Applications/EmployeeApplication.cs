@@ -3,6 +3,7 @@ using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
 using Fiap.Hackatoon.Identity.Domain.Services;
 using MassTransit;
+using Microsoft.Extensions.Options;
 
 
 namespace Fiap.Hackatoon.Identity.Application.Applications
@@ -11,13 +12,15 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
     {
         private readonly IEmployeeService _employeeService;
         private readonly ITokenApplication _tokenApplication;
-        private readonly IBus _bus;
+        private readonly IBusService _bus;
+        private readonly RabbitMqConnection _rabbitMqConnection;
 
-        public EmployeeApplication(IEmployeeService employeeService, IBus bus, ITokenApplication tokenApplication)
+        public EmployeeApplication(IEmployeeService employeeService, IBusService bus, ITokenApplication tokenApplication, IOptions<RabbitMqConnection> rabbitMqOptions)
         {
             _employeeService = employeeService;
             _bus = bus;
             _tokenApplication = tokenApplication;
+            _rabbitMqConnection = rabbitMqOptions.Value;
         }
 
         public async Task<string> Login(string email, string password)
@@ -41,7 +44,6 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
             }
         }
 
-
         public async Task<bool> AddEmployee(EmployeeCreateDto employeeCreate)
         {
 
@@ -49,9 +51,26 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
             if (employee is not null) throw new Exception("O email já existe cadastrado");
 
-            await _bus.Publish(employeeCreate);
+            await _bus.SendToBus(employeeCreate, _rabbitMqConnection.QueueNameEmployeeCreate);
 
             return true;            
         }
+
+        public async Task<bool> UpdateEmployee(int employeeId, EmployeeUpdateDto employeeUpdateDto)
+        {
+            var employeeUpdate =  await _employeeService.GetEmployeeById(employeeId);
+
+
+            if (employeeUpdate is null) throw new Exception($"Employee com  id:{employeeId} não encontrado");
+
+            if (employeeUpdate.Email != employeeUpdateDto.Email)
+            {
+                if (await _employeeService.GetEmployeeByEmail(employeeUpdateDto.Email) != null) throw new Exception($"O email {employeeUpdateDto.Email} já está sendo usando para outro employee");
+            }
+
+            await _bus.SendToBus(employeeUpdateDto, _rabbitMqConnection.QueueNameEmployeeUpdate);
+
+            return true;
+        }      
     }
 }

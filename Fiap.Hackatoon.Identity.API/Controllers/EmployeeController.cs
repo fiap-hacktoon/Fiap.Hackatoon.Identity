@@ -101,7 +101,7 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
         }
 
         [Authorize(Roles = "Manager")]
-        [HttpGet("GetEmployeeByEmail/{email:string}")]
+        [HttpGet("GetEmployeeByEmail/{email}")]
         public async Task<IActionResult> GetEmployeeByEmail(string email)
         {
 
@@ -121,6 +121,29 @@ namespace Fiap.Hackatoon.Identity.API.Controllers
                 return BadRequest("Erro ao tentar consultar o employee por id");
             }
 
+        }
+
+        [Authorize(Roles = "Manager,Attendant,Kitchen")]
+        [HttpPut("UpdateClient/{employeeId:int}")]
+        public async Task<IActionResult> UpdateEmployee(int employeeId, [FromBody] EmployeeUpdateDto employeeUpdateDto)
+        {
+            _logger.LogInformation($"update client: {employeeUpdateDto.Email}");
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                var addClient = await _employeeApplication.UpdateEmployee(employeeId, employeeUpdateDto);
+
+                if (addClient)
+                    return NoContent();
+                else
+                    return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation($"Update employee failed:. Error: ${ex.Message ?? ""}");
+                return BadRequest($"Erro ao tentar efeutar a atualização do Employee. {ex.Message}");
+            }
         }
     }
     

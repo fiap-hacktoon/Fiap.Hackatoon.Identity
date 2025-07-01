@@ -32,7 +32,11 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
             #region Service
             services.AddScoped<IClientService, ClientService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<IBusService,BusService>();
+            services.AddScoped<IUserService, UserService>();
             #endregion           
+
+            services.AddHttpContextAccessor();
         }
     }
 }

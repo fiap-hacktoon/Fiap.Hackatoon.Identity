@@ -19,6 +19,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
     {
         private readonly Mock<IClientService> _mockClientService;
         private readonly Mock<ITokenApplication> _mockTokenApplication;
+        private readonly Mock<IBusService> _mockBusService;
         private readonly Mock<IBus> _mockBus;
         private readonly ClientApplication _clientApplication;
 
@@ -26,11 +27,12 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
         {
             _mockClientService = new Mock<IClientService>();
             _mockTokenApplication = new Mock<ITokenApplication>();
+            _mockBusService = new Mock<IBusService>();
             _mockBus = new Mock<IBus>();
             _clientApplication = new ClientApplication(
                 _mockClientService.Object,
-                _mockTokenApplication.Object,
-                _mockBus.Object
+                _mockTokenApplication.Object,               
+                _mockBusService.Object
             );
         }
 

@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 
 namespace Fiap.Hackatoon.Identity.Domain.DTOs
 {
-    public class EmployeeCreateDto: EventDto
+    public class  ClientUpdateDto:EventDto
     {
+
         [Required(ErrorMessage = "O campo role é obrigatório")]
         public TypeRole TypeRole { get; set; }
 
@@ -20,10 +21,8 @@ namespace Fiap.Hackatoon.Identity.Domain.DTOs
         [EmailAddress]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "Digite a senha")]
-        public string Password { get; set; }
-
-        [Required(ErrorMessage = "Digite a confirmação da senha")]
-        public string ConfirmPassword { get; set; }        
+        [Required(ErrorMessage = "O campo document é obrigatório")]
+        public string Document { get; set; }
+        public DateTime Birth { get; set; }
     }
 }
