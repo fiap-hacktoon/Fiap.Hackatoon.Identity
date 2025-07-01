@@ -2,5 +2,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: identity-api-configmap
-data:  
-  Server: "rabbitmq-clusterip"  
+data:
+  Server: "rabbitmq-clusterip"
+  Port: "5672"
+  QueueNameClienteCreate: "ClienteCreate"
+  QueueNameClienteUpdate: "ClienteUpdate"
+  QueueNameEmployeeCreate: "EmployeeCreate"
+  QueueNameEmployeeUpdate: "EmployeeUpdate"

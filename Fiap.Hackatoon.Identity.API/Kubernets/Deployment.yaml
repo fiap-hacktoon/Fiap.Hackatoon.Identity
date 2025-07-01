@@ -50,6 +50,31 @@ spec:
           valueFrom:
             configMapKeyRef: 
               name: identity-api-configmap
-              key: "Server"        
+              key: "Server"
+        - name: RabbitMq__Port
+          valueFrom:
+            configMapKeyRef: 
+              name: identity-api-configmap
+              key: "Port"                              
+        - name: RabbitMq__QueueNameClienteCreate
+          valueFrom:
+            configMapKeyRef: 
+              name: identity-api-configmap
+              key: "QueueNameClienteCreate"   
+        - name: RabbitMq__QueueNameClienteUpdate
+          valueFrom:
+            configMapKeyRef: 
+              name: identity-api-configmap
+              key: "QueueNameClienteUpdate"   
+        - name: RabbitMq__QueueNameEmployeeCreate
+          valueFrom:
+            configMapKeyRef: 
+              name: identity-api-configmap
+              key: "QueueNameEmployeeCreate"   
+        - name: RabbitMq__QueueNameEmployeeUpdate
+          valueFrom:
+            configMapKeyRef: 
+              name: identity-api-configmap
+              key: "QueueNameEmployeeUpdate"                                                                         
         
        
