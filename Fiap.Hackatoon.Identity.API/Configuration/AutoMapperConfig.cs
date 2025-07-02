@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fiap.Hackatoon.Identity.Domain.DTOs;
 using Fiap.Hackatoon.Identity.Domain.Entities;
+using Fiap.Hackatoon.Shared.Dto;
 
 namespace Fiap.Hackatoon.Identity.API.Configuration
 {

@@ -1,11 +1,10 @@
 ﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
-using Fiap.Hackatoon.Identity.Domain.Services;
+using Fiap.Hackatoon.Shared.Dto;
 using MassTransit;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
+
 
 
 
@@ -16,10 +15,10 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
         private readonly IClientService _clientService;
         private readonly ITokenApplication _tokenApplication;        
-        private readonly IBusService _bus;        
+        private readonly IBus _bus;        
         private readonly RabbitMqConnection _rabbitMqConnection;        
 
-        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication, IBusService bus, IOptions<RabbitMqConnection> rabbitMqOptions)
+        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication, IBus bus, IOptions<RabbitMqConnection> rabbitMqOptions)
         {
             _clientService = clientService;
             _tokenApplication = tokenApplication;
@@ -52,7 +51,9 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
             if (client is not null) throw new Exception("O email/document já existe cadastrado");
 
-            await _bus.SendToBus(ClientDto, _rabbitMqConnection.QueueNameClienteCreate);
+            var endpoint = await _bus.GetSendEndpoint(new Uri($"queue:{_rabbitMqConnection.QueueNameClienteCreate}"));
+
+            await endpoint.Send(ClientDto);          
 
             return true;
         }
@@ -80,7 +81,9 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
                     throw new Exception($"O documento {clientUpdateDto.Email} já está sendo usado para outro cliente");
             }
 
-            await _bus.SendToBus(clientUpdateDto, _rabbitMqConnection.QueueNameClienteUpdate);
+            var endpoint = await _bus.GetSendEndpoint(new Uri($"queue:{_rabbitMqConnection.QueueNameClienteUpdate}"));
+
+            await endpoint.Send(clientUpdateDto);         
 
             return true;
         }

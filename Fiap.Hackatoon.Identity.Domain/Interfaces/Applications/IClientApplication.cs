@@ -1,5 +1,6 @@
 ﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
 using Fiap.Hackatoon.Identity.Domain.Entities;
+using Fiap.Hackatoon.Shared.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;

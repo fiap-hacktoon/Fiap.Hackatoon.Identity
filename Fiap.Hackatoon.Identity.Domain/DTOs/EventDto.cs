@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Fiap.Hackatoon.Identity.Domain.DTOs
+namespace Fiap.Hackatoon.Shared.Dto
 {
     public class EventDto
     {

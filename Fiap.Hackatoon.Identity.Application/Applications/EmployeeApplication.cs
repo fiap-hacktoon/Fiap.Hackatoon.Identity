@@ -2,6 +2,7 @@
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
 using Fiap.Hackatoon.Identity.Domain.Services;
+using Fiap.Hackatoon.Shared.Dto;
 using MassTransit;
 using Microsoft.Extensions.Options;
 
@@ -12,10 +13,10 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
     {
         private readonly IEmployeeService _employeeService;
         private readonly ITokenApplication _tokenApplication;
-        private readonly IBusService _bus;
+        private readonly IBus _bus;
         private readonly RabbitMqConnection _rabbitMqConnection;
 
-        public EmployeeApplication(IEmployeeService employeeService, IBusService bus, ITokenApplication tokenApplication, IOptions<RabbitMqConnection> rabbitMqOptions)
+        public EmployeeApplication(IEmployeeService employeeService, IBus bus, ITokenApplication tokenApplication, IOptions<RabbitMqConnection> rabbitMqOptions)
         {
             _employeeService = employeeService;
             _bus = bus;
@@ -51,7 +52,9 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
             if (employee is not null) throw new Exception("O email já existe cadastrado");
 
-            await _bus.SendToBus(employeeCreate, _rabbitMqConnection.QueueNameEmployeeCreate);
+            var endpoint = await _bus.GetSendEndpoint(new Uri($"queue:{_rabbitMqConnection.QueueNameEmployeeCreate}"));
+
+            await endpoint.Send(employeeCreate);            
 
             return true;            
         }
@@ -68,7 +71,9 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
                 if (await _employeeService.GetEmployeeByEmail(employeeUpdateDto.Email) != null) throw new Exception($"O email {employeeUpdateDto.Email} já está sendo usado para outro employee");
             }
 
-            await _bus.SendToBus(employeeUpdateDto, _rabbitMqConnection.QueueNameEmployeeUpdate);
+            var endpoint = await _bus.GetSendEndpoint(new Uri($"queue:{_rabbitMqConnection.QueueNameEmployeeUpdate}"));
+
+            await endpoint.Send(employeeUpdateDto);            
 
             return true;
         }      
