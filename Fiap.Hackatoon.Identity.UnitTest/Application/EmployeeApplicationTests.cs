@@ -1,18 +1,16 @@
-﻿using Fiap.Hackatoon.Identity.Application.Applications;
+﻿using Moq;
+using Xunit;
+using Fiap.Hackatoon.Identity.Application.Applications;
+using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
+using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.DTOs;
 using Fiap.Hackatoon.Identity.Domain.Entities;
 using Fiap.Hackatoon.Identity.Domain.Enumerators;
-using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
-using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
-using MassTransit; // Ainda necessário para IBus (se outras classes usarem)
-using Microsoft.Extensions.Options; // Para mockar IOptions
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using MassTransit; // Para IBus e ISendEndpoint
+using Microsoft.Extensions.Options; // Para IOptions
 using System.Threading.Tasks;
-using Xunit; // Adicione este using para XUnit.
+using System;
+using Fiap.Hackatoon.Shared.Dto;
 
 namespace Fiap.Hackatoon.Identity.UnitTest.Application
 {
@@ -20,8 +18,8 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
     {
         private readonly Mock<IEmployeeService> _mockEmployeeService;
         private readonly Mock<ITokenApplication> _mockTokenApplication;
-        private readonly Mock<IBusService> _mockBusService; // Mocado agora IBusService
-        private readonly Mock<IOptions<RabbitMqConnection>> _mockRabbitMqOptions; // Novo mock para IOptions
+        private readonly Mock<IBus> _mockBus; // Mock do IBus (direto)
+        private readonly Mock<IOptions<RabbitMqConnection>> _mockRabbitMqOptions;
         private readonly EmployeeApplication _employeeApplication;
 
         // Nomes de fila que serão configurados no mock de RabbitMqConnection
@@ -32,15 +30,15 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
         {
             _mockEmployeeService = new Mock<IEmployeeService>();
             _mockTokenApplication = new Mock<ITokenApplication>();
-            _mockBusService = new Mock<IBusService>(); // Instancia o mock para IBusService
-            _mockRabbitMqOptions = new Mock<IOptions<RabbitMqConnection>>(); // Instancia o mock para IOptions
+            _mockBus = new Mock<IBus>(); // Instancia o mock para IBus
+            _mockRabbitMqOptions = new Mock<IOptions<RabbitMqConnection>>();
 
-            // Configura o mock de IOptions<RabbitMqConnection>
+            // Configura o mock do IOptions<RabbitMqConnection>
             _mockRabbitMqOptions.Setup(o => o.Value).Returns(new RabbitMqConnection
             {
                 QueueNameEmployeeCreate = _employeeCreateQueueName,
                 QueueNameEmployeeUpdate = _employeeUpdateQueueName,
-                // Adicione outras propriedades de RabbitMqConnection se a EmployeeApplication as utilizar
+                // Outras propriedades podem ser configuradas se usadas no código
                 HostName = "localhost",
                 Port = "5672",
                 UserName = "guest",
@@ -49,11 +47,18 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
 
             _employeeApplication = new EmployeeApplication(
                 _mockEmployeeService.Object,
-                _mockBusService.Object, // Passa o mock de IBusService
+                _mockBus.Object, // Passa o mock de IBus
                 _mockTokenApplication.Object,
-                _mockRabbitMqOptions.Object // Passa o mock de IOptions
+                _mockRabbitMqOptions.Object
             );
+
+            // Setup inicial para o GetSendEndpoint do IBus.
+            // Para cada chamada Send, MassTransit.IBus.GetSendEndpoint é chamado primeiro.
+            // Precisamos mockar isso para retornar um ISendEndpoint mockado.
+            _mockBus.Setup(b => b.GetSendEndpoint(It.IsAny<Uri>()))
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>()); // Retorna um mock de ISendEndpoint
         }
+
 
 
         [Fact]
@@ -112,6 +117,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
         }
 
 
+
         [Fact]
         public async Task AddEmployee_ShouldReturnTrueAndSendToBus_WhenEmployeeDoesNotExist()
         {
@@ -126,8 +132,10 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             };
 
             _mockEmployeeService.Setup(s => s.GetEmployeeByEmail(employeeCreateDto.Email)).ReturnsAsync((Employee)null);
-            // Configura o _mockBusService.SendToBus
-            _mockBusService.Setup(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
+            // Certifique-se que o mock de ISendEndpoint.Send também está configurado
+            _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeCreateQueueName}")))
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<EmployeeCreateDto>(), It.IsAny<CancellationToken>()) == Task.CompletedTask));
 
             // Act
             var result = await _employeeApplication.AddEmployee(employeeCreateDto);
@@ -135,13 +143,12 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             // Assert
             Assert.True(result);
             _mockEmployeeService.Verify(s => s.GetEmployeeByEmail(employeeCreateDto.Email), Times.Once);
-            // Verifica se SendToBus foi chamado com o DTO correto e o nome da fila correto
-            _mockBusService.Verify(b => b.SendToBus(
-                It.Is<EmployeeCreateDto>(dto =>
-                    dto.Email == employeeCreateDto.Email &&
-                    dto.Name == employeeCreateDto.Name), // Assumindo EventDto tem Email e Name
-                _employeeCreateQueueName), // Usa o nome da fila configurado no mock de IOptions
-                Times.Once);
+
+            // Verifica a chamada a GetSendEndpoint com a URI correta
+            _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeCreateQueueName}")), Times.Once);
+            // Verifica a chamada a Send no endpoint retornado
+            Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_employeeCreateQueueName}")).Result)
+                .Verify(se => se.Send(It.Is<EmployeeCreateDto>(dto => dto.Email == employeeCreateDto.Email && dto.Name == employeeCreateDto.Name), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -153,8 +160,8 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
                 TypeRole = TypeRole.Manager,
                 Name = "Funcionário Existente",
                 Email = "existingemployee@example.com",
-                Password = "ExistingEmpPassword",
-                ConfirmPassword = "ExistingEmpPassword"
+                Password = "EmpSecurePassword123",
+                ConfirmPassword = "EmpSecurePassword123"
             };
             var existingEmployee = new Employee { Id = 20, Email = employeeCreateDto.Email };
 
@@ -164,10 +171,43 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             var exception = await Assert.ThrowsAsync<Exception>(() => _employeeApplication.AddEmployee(employeeCreateDto));
             Assert.Equal("O email já existe cadastrado", exception.Message);
             _mockEmployeeService.Verify(s => s.GetEmployeeByEmail(employeeCreateDto.Email), Times.Once);
-            // Verifica que SendToBus NUNCA foi chamado
-            _mockBusService.Verify(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>()), Times.Never);
+
+            // Garante que GetSendEndpoint e Send não foram chamados
+            _mockBus.Verify(b => b.GetSendEndpoint(It.IsAny<Uri>()), Times.Never);
+            Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_employeeCreateQueueName}")).Result)
+                .Verify(se => se.Send(It.IsAny<EmployeeCreateDto>(), It.IsAny<CancellationToken>()), Times.Never);
         }
-       
+
+        [Fact]
+        public async Task AddEmployee_ShouldThrowException_WhenBusSendFails()
+        {
+            // Arrange
+            var employeeCreateDto = new EmployeeCreateDto
+            {
+                TypeRole = TypeRole.Manager,
+                Name = "Falha Publicacao",
+                Email = "publishfailemployee@example.com",
+                Password = "EmpSecurePassword123",
+                ConfirmPassword = "EmpSecurePassword123"
+            };
+
+            _mockEmployeeService.Setup(s => s.GetEmployeeByEmail(employeeCreateDto.Email)).ReturnsAsync((Employee)null);
+
+            // Configura o mock de ISendEndpoint.Send para lançar uma exceção
+            _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeCreateQueueName}")))
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<EmployeeCreateDto>(), It.IsAny<CancellationToken>()) == Task.FromException(new Exception("Simulated bus send error"))));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<Exception>(() => _employeeApplication.AddEmployee(employeeCreateDto));            
+            _mockEmployeeService.Verify(s => s.GetEmployeeByEmail(employeeCreateDto.Email), Times.Once);
+
+            // Garante que GetSendEndpoint e Send foram chamados (mesmo com erro)
+            _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeCreateQueueName}")), Times.Once);
+            Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_employeeCreateQueueName}")).Result)
+                .Verify(se => se.Send(It.IsAny<EmployeeCreateDto>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+   
 
         [Fact]
         public async Task UpdateEmployee_ShouldReturnTrueAndSendToBus_WhenEmployeeExistsAndEmailNotChanged()
@@ -182,7 +222,11 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             };
             var existingEmployee = new Employee { Id = employeeId, Email = "originalemp@example.com" };
 
-            _mockEmployeeService.Setup(s => s.GetEmployeeById(employeeId)).ReturnsAsync(existingEmployee);            
+            _mockEmployeeService.Setup(s => s.GetEmployeeById(employeeId)).ReturnsAsync(existingEmployee);
+            // Email não mudou, então GetEmployeeByEmail não deve ser chamado para validação de existência
+
+            _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeUpdateQueueName}")))
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<EmployeeUpdateDto>(), It.IsAny<CancellationToken>()) == Task.CompletedTask));
 
             // Act
             var result = await _employeeApplication.UpdateEmployee(employeeId, employeeUpdateDto);
@@ -190,17 +234,18 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             // Assert
             Assert.True(result);
             _mockEmployeeService.Verify(s => s.GetEmployeeById(employeeId), Times.Once);
-            _mockEmployeeService.Verify(s => s.GetEmployeeByEmail(It.IsAny<string>()), Times.Never); // Email não mudou, não deve chamar
-            _mockBusService.Verify(b => b.SendToBus(
-                It.Is<EmployeeUpdateDto>(dto =>
+            _mockEmployeeService.Verify(s => s.GetEmployeeByEmail(It.IsAny<string>()), Times.Never);
+
+            _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeUpdateQueueName}")), Times.Once);
+            Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_employeeUpdateQueueName}")).Result)
+                .Verify(se => se.Send(It.Is<EmployeeUpdateDto>(dto =>
                     dto.Email == employeeUpdateDto.Email &&
-                    dto.Name == employeeUpdateDto.Name),
-                _employeeUpdateQueueName), // Usa o nome da fila configurado
-                Times.Once);
+                    dto.Name == employeeUpdateDto.Name &&
+                    dto.TypeRole == employeeUpdateDto.TypeRole), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public async Task UpdateEmployee_ShouldReturnTrueAndSendToBus_WhenEmployeeExistsAndEmailChangedAndNewEmailIsUnique()
+        public async Task UpdateEmployee_ShouldReturnTrueAndSendToBus_WhenEmailChangedAndNewEmailIsUnique()
         {
             // Arrange
             int employeeId = 1;
@@ -210,11 +255,13 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
                 Name = "Updated Emp Name",
                 Email = "newuniqueemp@example.com"
             };
-            var existingEmployee = new Employee { Id = employeeId, Email = "oldemp@example.com" };
+            var existingEmployee = new Employee { Id = employeeId, Email = "oldemp@example.com" }; // Email diferente
 
             _mockEmployeeService.Setup(s => s.GetEmployeeById(employeeId)).ReturnsAsync(existingEmployee);
             _mockEmployeeService.Setup(s => s.GetEmployeeByEmail(employeeUpdateDto.Email)).ReturnsAsync((Employee)null); // Novo email é único
-            _mockBusService.Setup(b => b.SendToBus(It.IsAny<EmployeeCreateDto>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
+            _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeUpdateQueueName}")))
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<EmployeeUpdateDto>(), It.IsAny<CancellationToken>()) == Task.CompletedTask));
 
             // Act
             var result = await _employeeApplication.UpdateEmployee(employeeId, employeeUpdateDto);
@@ -223,7 +270,13 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             Assert.True(result);
             _mockEmployeeService.Verify(s => s.GetEmployeeById(employeeId), Times.Once);
             _mockEmployeeService.Verify(s => s.GetEmployeeByEmail(employeeUpdateDto.Email), Times.Once); // Deve verificar o novo email
-            
+
+            _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeUpdateQueueName}")), Times.Once);
+            Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_employeeUpdateQueueName}")).Result)
+                .Verify(se => se.Send(It.Is<EmployeeUpdateDto>(dto =>
+                    dto.Email == employeeUpdateDto.Email &&
+                    dto.Name == employeeUpdateDto.Name &&
+                    dto.TypeRole == employeeUpdateDto.TypeRole), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -245,7 +298,9 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             Assert.Equal($"Employee com id:{employeeId} não encontrado", exception.Message);
             _mockEmployeeService.Verify(s => s.GetEmployeeById(employeeId), Times.Once);
             _mockEmployeeService.Verify(s => s.GetEmployeeByEmail(It.IsAny<string>()), Times.Never);
-            
+            _mockBus.Verify(b => b.GetSendEndpoint(It.IsAny<Uri>()), Times.Never);
+            Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_employeeUpdateQueueName}")).Result) // Use a fila correta aqui
+                .Verify(se => se.Send(It.IsAny<EmployeeUpdateDto>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -270,11 +325,13 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             Assert.Equal($"O email {employeeUpdateDto.Email} já está sendo usado para outro employee", exception.Message);
             _mockEmployeeService.Verify(s => s.GetEmployeeById(employeeId), Times.Once);
             _mockEmployeeService.Verify(s => s.GetEmployeeByEmail(employeeUpdateDto.Email), Times.Once);
-            
+            _mockBus.Verify(b => b.GetSendEndpoint(It.IsAny<Uri>()), Times.Never);
+            Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_employeeUpdateQueueName}")).Result) // Use a fila correta aqui
+                .Verify(se => se.Send(It.IsAny<EmployeeUpdateDto>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
-        public async Task UpdateEmployee_ShouldThrowException_WhenBusServiceSendFails()
+        public async Task UpdateEmployee_ShouldThrowException_WhenBusSendFails()
         {
             // Arrange
             int employeeId = 1;
@@ -288,14 +345,19 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
 
             _mockEmployeeService.Setup(s => s.GetEmployeeById(employeeId)).ReturnsAsync(existingEmployee);
             _mockEmployeeService.Setup(s => s.GetEmployeeByEmail(employeeUpdateDto.Email)).ReturnsAsync((Employee)null);
-            _mockBusService.Setup(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>())).ThrowsAsync(new Exception("BusService update send error"));
+
+            // Configura o mock de ISendEndpoint.Send para lançar uma exceção
+            _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeUpdateQueueName}")))
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<EmployeeUpdateDto>(), It.IsAny<CancellationToken>()) == Task.FromException(new Exception("Simulated bus send error"))));
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<Exception>(() => _employeeApplication.UpdateEmployee(employeeId, employeeUpdateDto));
-            Assert.Equal("BusService update send error", exception.Message);
+            await Assert.ThrowsAsync<Exception>(() => _employeeApplication.UpdateEmployee(employeeId, employeeUpdateDto));
+            
             _mockEmployeeService.Verify(s => s.GetEmployeeById(employeeId), Times.Once);
             _mockEmployeeService.Verify(s => s.GetEmployeeByEmail(employeeUpdateDto.Email), Times.Once);
-            _mockBusService.Verify(b => b.SendToBus(It.IsAny<EventDto>(), It.IsAny<string>()), Times.Once);
+            _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_employeeUpdateQueueName}")), Times.Once);
+            Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_employeeUpdateQueueName}")).Result)
+                .Verify(se => se.Send(It.IsAny<EmployeeUpdateDto>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

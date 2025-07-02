@@ -9,6 +9,7 @@ using System.Text;
 using System.Net;
 using Fiap.Hackatoon.Identity.Domain.Enumerators;
 using Fiap.Hackatoon.Identity.IntegrationTests.Infra;
+using Fiap.Hackatoon.Shared.Dto;
 // using MassTransit.Testing; // Removido, pois não faremos verificações de TestHarness aqui
 
 namespace Fiap.Hackatoon.Identity.IntegrationTests.Services
