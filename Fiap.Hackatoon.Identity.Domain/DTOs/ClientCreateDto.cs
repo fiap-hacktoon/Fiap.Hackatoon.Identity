@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Fiap.Hackatoon.Shared.Dto
 {
-    public class ClientCreateDto: EventDto
+    public class ClientCreateDto
     {   
         [Required(ErrorMessage = "O campo role é obrigatório")]
         public TypeRole TypeRole { get; set; }
@@ -29,6 +29,6 @@ namespace Fiap.Hackatoon.Shared.Dto
         public string ConfirmPassword { get; set; }
 
         [Required(ErrorMessage = "O campo Birth é obrigatório")]
-        public DateTime Birth { get; set; }        
+        public DateOnly Birth { get; set; }        
     }
 }

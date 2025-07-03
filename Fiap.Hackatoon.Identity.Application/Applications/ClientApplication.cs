@@ -1,4 +1,5 @@
-﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
+﻿using AutoMapper;
+using Fiap.Hackatoon.Identity.Domain.DTOs;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
 using Fiap.Hackatoon.Shared.Dto;
@@ -16,14 +17,16 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
         private readonly IClientService _clientService;
         private readonly ITokenApplication _tokenApplication;        
         private readonly IBus _bus;        
-        private readonly RabbitMqConnection _rabbitMqConnection;        
+        private readonly RabbitMqConnection _rabbitMqConnection;
+        private readonly IMapper _mapper;
 
-        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication, IBus bus, IOptions<RabbitMqConnection> rabbitMqOptions)
+        public ClientApplication(IClientService clientService, ITokenApplication tokenApplication, IBus bus, IOptions<RabbitMqConnection> rabbitMqOptions, IMapper mapper)
         {
             _clientService = clientService;
             _tokenApplication = tokenApplication;
             _bus = bus;
-            _rabbitMqConnection = rabbitMqOptions.Value;            
+            _rabbitMqConnection = rabbitMqOptions.Value;
+            _mapper = mapper;
         }
 
         public async Task<string> Login(string search, string password)
@@ -51,9 +54,10 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
             if (client is not null) throw new Exception("O email/document já existe cadastrado");
 
-            var endpoint = await _bus.GetSendEndpoint(new Uri($"queue:{_rabbitMqConnection.QueueNameClienteCreate}"));
+            var message = _mapper.Map<ClientCreateEvent>(ClientDto);
 
-            await endpoint.Send(ClientDto);          
+            var endpoint = await _bus.GetSendEndpoint(new Uri($"queue:{_rabbitMqConnection.QueueNameClienteCreate}"));     
+            await endpoint.Send(message);          
 
             return true;
         }
@@ -81,9 +85,13 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
                     throw new Exception($"O documento {clientUpdateDto.Email} já está sendo usado para outro cliente");
             }
 
+
+            var message = _mapper.Map<ClientUpdateEvent>(clientUpdateDto);
+            message.Id = clienteId;
+
             var endpoint = await _bus.GetSendEndpoint(new Uri($"queue:{_rabbitMqConnection.QueueNameClienteUpdate}"));
 
-            await endpoint.Send(clientUpdateDto);         
+            await endpoint.Send(message);         
 
             return true;
         }

@@ -11,7 +11,8 @@ using Microsoft.Extensions.Options; // Para IOptions
 using System.Threading.Tasks;
 using System;
 using System.Net.Sockets;
-using Fiap.Hackatoon.Shared.Dto; // Para Uri, pode ser necessário para GetSendEndpoint mock
+using Fiap.Hackatoon.Shared.Dto;
+using AutoMapper; // Para Uri, pode ser necessário para GetSendEndpoint mock
 
 namespace Fiap.Hackatoon.Identity.UnitTest.Application
 {
@@ -21,6 +22,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
         private readonly Mock<ITokenApplication> _mockTokenApplication;
         private readonly Mock<IBus> _mockBus; // Mock do IBus (direto)
         private readonly Mock<IOptions<RabbitMqConnection>> _mockRabbitMqOptions;
+        private readonly Mock<IMapper> _mapper;
         private readonly ClientApplication _clientApplication;
 
         // Nomes de fila que serão configurados no mock de RabbitMqConnection
@@ -33,6 +35,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             _mockTokenApplication = new Mock<ITokenApplication>();
             _mockBus = new Mock<IBus>(); // Instancia o mock para IBus
             _mockRabbitMqOptions = new Mock<IOptions<RabbitMqConnection>>();
+            _mapper = new Mock<IMapper>();
 
             // Configura o mock do IOptions<RabbitMqConnection>
             _mockRabbitMqOptions.Setup(o => o.Value).Returns(new RabbitMqConnection
@@ -50,7 +53,8 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
                 _mockClientService.Object,
                 _mockTokenApplication.Object,
                 _mockBus.Object, // Passa o mock de IBus
-                _mockRabbitMqOptions.Object
+                _mockRabbitMqOptions.Object,
+                _mapper.Object
             );
 
             // Setup inicial para o GetSendEndpoint do IBus.
@@ -68,7 +72,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             // Arrange
             string search = "test@example.com";
             string password = "password123";
-            var client = new Client { Id = 1, Email = search, Password = password, TypeRole = TypeRole.Client, Document = "12345678900", Birth = DateTime.Now.AddYears(-20) };
+            var client = new Client { Id = 1, Email = search, Password = password, TypeRole = TypeRole.Client, Document = "12345678900", Birth =  DateOnly.FromDateTime(DateTime.Now.AddYears(-20)) };
             string expectedToken = "mocked_jwt_token_for_valid_client";
 
             _mockClientService.Setup(s => s.GetClientLogin(search, password)).ReturnsAsync(client);
@@ -122,6 +126,15 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
         [Fact]
         public async Task AddClient_ShouldReturnTrueAndSendToBus_WhenClientDoesNotExist()
         {
+            ClientCreateEvent expected = new ClientCreateEvent()
+            {
+                TypeRole = TypeRole.Client,
+                Name = "Novo Cliente",
+                Email = "newclient@example.com",
+                Document = "00011122233",
+                Password = "SecurePassword123",                
+                Birth = new DateOnly(1990, 5, 15)
+            };
             // Arrange
             var clientDto = new ClientCreateDto
             {
@@ -131,14 +144,16 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
                 Document = "00011122233",
                 Password = "SecurePassword123",
                 ConfirmPassword = "SecurePassword123",
-                Birth = new DateTime(1990, 5, 15)
+                Birth = new DateOnly(1990, 5, 15)
             };
 
             _mockClientService.Setup(s => s.GetClientByEmailOrDocument(clientDto.Email, clientDto.Document)).ReturnsAsync((Client)null);
 
             // Certifique-se que o mock de ISendEndpoint.Send também está configurado
             _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientCreateQueueName}")))
-                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientCreateDto>(), It.IsAny<CancellationToken>()) == Task.CompletedTask));
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientCreateEvent>(), It.IsAny<CancellationToken>()) == Task.CompletedTask));
+
+            _mapper.Setup(x => x.Map<ClientCreateEvent>(It.IsAny<ClientCreateDto>())).Returns(expected);
 
             // Act
             var result = await _clientApplication.AddClient(clientDto);
@@ -151,7 +166,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientCreateQueueName}")), Times.Once);
             // Verifica a chamada a Send no endpoint retornado
             Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_clientCreateQueueName}")).Result)
-                .Verify(se => se.Send(It.Is<ClientCreateDto>(dto => dto.Email == clientDto.Email && dto.Document == clientDto.Document), It.IsAny<CancellationToken>()), Times.Once);
+                .Verify(se => se.Send(It.Is<ClientCreateEvent>(dto => dto.Email == clientDto.Email && dto.Document == clientDto.Document), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -166,7 +181,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
                 Document = "11122233344",
                 Password = "ExistingPassword",
                 ConfirmPassword = "ExistingPassword",
-                Birth = new DateTime(1980, 1, 1)
+                Birth = new DateOnly(1980, 1, 1)
             };
             var existingClient = new Client { Id = 10, Email = clientDto.Email, Document = clientDto.Document };
 
@@ -180,7 +195,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             // Garante que GetSendEndpoint e Send não foram chamados
             _mockBus.Verify(b => b.GetSendEndpoint(It.IsAny<Uri>()), Times.Never);
             Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_clientCreateQueueName}")).Result)
-                .Verify(se => se.Send(It.IsAny<ClientCreateDto>(), It.IsAny<CancellationToken>()), Times.Never);
+                .Verify(se => se.Send(It.IsAny<ClientCreateEvent>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -195,14 +210,14 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
                 Document = "99988877766",
                 Password = "PublishFailPassword",
                 ConfirmPassword = "PublishFailPassword",
-                Birth = new DateTime(1995, 10, 20)
+                Birth = new DateOnly(1995, 10, 20)
             };
 
             _mockClientService.Setup(s => s.GetClientByEmailOrDocument(clientDto.Email, clientDto.Document)).ReturnsAsync((Client)null);
 
             // Configura o mock de ISendEndpoint.Send para lançar uma exceção
             _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientCreateQueueName}")))
-                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientCreateDto>(), It.IsAny<CancellationToken>()) == Task.FromException(new Exception("Simulated bus send error"))));
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientCreateEvent>(), It.IsAny<CancellationToken>()) == Task.FromException(new Exception("Simulated bus send error"))));
 
             // Act & Assert
             await Assert.ThrowsAsync<Exception>(() => _clientApplication.AddClient(clientDto));
@@ -211,7 +226,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             // Garante que GetSendEndpoint e Send foram chamados (mesmo com erro)
             _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientCreateQueueName}")), Times.Once);
             Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_clientCreateQueueName}")).Result)
-                .Verify(se => se.Send(It.IsAny<ClientCreateDto>(), It.IsAny<CancellationToken>()), Times.Once);
+                .Verify(se => se.Send(It.IsAny<ClientCreateEvent>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
 
@@ -221,13 +236,23 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
         {
             // Arrange
             int clientId = 1;
+
+            var expected = new ClientUpdateEvent
+            {
+                TypeRole = TypeRole.Client,
+                Name = "Updated Name",
+                Email = "original@example.com",
+                Document = "12345678900",
+                Birth = new DateOnly(1990, 1, 1)
+            };
+
             var clientUpdateDto = new ClientUpdateDto
             {
                 TypeRole = TypeRole.Client,
                 Name = "Updated Name",
                 Email = "original@example.com",
                 Document = "12345678900",
-                Birth = new DateTime(1990, 1, 1)
+                Birth = new DateOnly(1990, 1, 1)
             };
             var existingClient = new Client { Id = clientId, Email = "original@example.com", Document = "12345678900" };
 
@@ -235,7 +260,9 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             // Email e Documento não mudaram, então GetClientByEmail/Document não devem ser chamados para validação de existência
 
             _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientUpdateQueueName}")))
-                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientUpdateDto>(), It.IsAny<CancellationToken>()) == Task.CompletedTask));
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientUpdateEvent>(), It.IsAny<CancellationToken>()) == Task.CompletedTask));
+
+            _mapper.Setup(x => x.Map<ClientUpdateEvent>(It.IsAny<ClientUpdateDto>())).Returns(expected);
 
             // Act
             var result = await _clientApplication.UpdateClient(clientId, clientUpdateDto);
@@ -248,7 +275,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
 
             _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientUpdateQueueName}")), Times.Once);
             Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_clientUpdateQueueName}")).Result)
-                .Verify(se => se.Send(It.Is<ClientUpdateDto>(dto =>
+                .Verify(se => se.Send(It.Is<ClientUpdateEvent>(dto =>
                     dto.Email == clientUpdateDto.Email &&
                     dto.Document == clientUpdateDto.Document), It.IsAny<CancellationToken>()), Times.Once);
         }
@@ -258,13 +285,23 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
         {
             // Arrange
             int clientId = 1;
+
+            var expected = new ClientUpdateEvent
+            {
+                TypeRole = TypeRole.Client,
+                Name = "Updated Name",
+                Email = "newunique@example.com",
+                Document = "12345678900",
+                Birth = new DateOnly(1990, 1, 1)
+            };
+
             var clientUpdateDto = new ClientUpdateDto
             {
                 TypeRole = TypeRole.Client,
                 Name = "Updated Name",
                 Email = "newunique@example.com",
                 Document = "12345678900",
-                Birth = new DateTime(1990, 1, 1)
+                Birth = new DateOnly(1990, 1, 1)
             };
             var existingClient = new Client { Id = clientId, Email = "old@example.com", Document = "12345678900" }; // Email diferente
 
@@ -273,7 +310,9 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
             _mockClientService.Setup(s => s.GetClientByDocument(clientUpdateDto.Document)).ReturnsAsync(existingClient); // Documento é o mesmo do cliente original
 
             _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientUpdateQueueName}")))
-                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientUpdateDto>(), It.IsAny<CancellationToken>()) == Task.CompletedTask));
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientUpdateEvent>(), It.IsAny<CancellationToken>()) == Task.CompletedTask));
+
+            _mapper.Setup(x => x.Map<ClientUpdateEvent>(It.IsAny<ClientUpdateDto>())).Returns(expected);
 
             // Act
             var result = await _clientApplication.UpdateClient(clientId, clientUpdateDto);
@@ -286,7 +325,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
 
             _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientUpdateQueueName}")), Times.Once);
             Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_clientUpdateQueueName}")).Result)
-                .Verify(se => se.Send(It.Is<ClientUpdateDto>(dto =>
+                .Verify(se => se.Send(It.Is<ClientUpdateEvent>(dto =>
                     dto.Email == clientUpdateDto.Email &&
                     dto.Document == clientUpdateDto.Document), It.IsAny<CancellationToken>()), Times.Once);
         }
@@ -304,7 +343,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
                 Name = "Name",
                 Email = "email@example.com",
                 Document = "123",
-                Birth = DateTime.Now
+                Birth = DateOnly.FromDateTime(DateTime.Now)
             };
 
             _mockClientService.Setup(s => s.GetClientById(clientId)).ReturnsAsync((Client)null); // Cliente não encontrado
@@ -331,7 +370,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
                 Name = "Updated Name",
                 Email = "alreadyused@example.com",
                 Document = "12345678900",
-                Birth = new DateTime(1990, 1, 1)
+                Birth = new DateOnly(1990, 1, 1)
             };
             var existingClient = new Client { Id = clientId, Email = "original@example.com", Document = "12345678900" };
             var clientWithExistingEmail = new Client { Id = 2, Email = "alreadyused@example.com" }; // Outro cliente usando o email
@@ -357,13 +396,23 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
         {
             // Arrange
             int clientId = 1;
+
+            var expected = new ClientUpdateEvent
+            {
+                TypeRole = TypeRole.Client,
+                Name = "Updated Name",
+                Email = "unique@example.com",
+                Document = "12345678900",
+                Birth = new DateOnly(1990, 1, 1)
+            };
+
             var clientUpdateDto = new ClientUpdateDto
             {
                 TypeRole = TypeRole.Client,
                 Name = "Updated Name",
                 Email = "unique@example.com",
                 Document = "12345678900",
-                Birth = new DateTime(1990, 1, 1)
+                Birth = new DateOnly(1990, 1, 1)
             };
             var existingClient = new Client { Id = clientId, Email = "original@example.com", Document = "12345678900" };
 
@@ -373,7 +422,9 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
 
             // Configura o mock de ISendEndpoint.Send para lançar uma exceção
             _mockBus.Setup(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientUpdateQueueName}")))
-                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientUpdateDto>(), It.IsAny<CancellationToken>()) == Task.FromException(new Exception("Simulated bus send error"))));
+                     .ReturnsAsync(Mock.Of<ISendEndpoint>(se => se.Send(It.IsAny<ClientUpdateEvent>(), It.IsAny<CancellationToken>()) == Task.FromException(new Exception("Simulated bus send error"))));
+
+            _mapper.Setup(x => x.Map<ClientUpdateEvent>(It.IsAny<ClientUpdateDto>())).Returns(expected);
 
             // Act & Assert
             await Assert.ThrowsAsync<Exception>(() => _clientApplication.UpdateClient(clientId, clientUpdateDto));            
@@ -383,7 +434,7 @@ namespace Fiap.Hackatoon.Identity.UnitTest.Application
 
             _mockBus.Verify(b => b.GetSendEndpoint(It.Is<Uri>(uri => uri.ToString() == $"queue:{_clientUpdateQueueName}")), Times.Once);
             Mock.Get(_mockBus.Object.GetSendEndpoint(new Uri($"queue:{_clientUpdateQueueName}")).Result)
-                .Verify(se => se.Send(It.IsAny<ClientUpdateDto>(), It.IsAny<CancellationToken>()), Times.Once);
+                .Verify(se => se.Send(It.IsAny<ClientUpdateEvent>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

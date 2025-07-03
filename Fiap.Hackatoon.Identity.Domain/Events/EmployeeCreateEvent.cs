@@ -8,17 +8,11 @@ using System.Threading.Tasks;
 
 namespace Fiap.Hackatoon.Shared.Dto
 {
-    public class EmployeeUpdateDto
-    {
-        [Required(ErrorMessage = "O campo role é obrigatório")]
+    public class EmployeeCreateEvent
+    {     
         public TypeRole TypeRole { get; set; }
-
-        [Required(ErrorMessage = "O campo nome é obrigatório")]
         public string Name { get; set; }
-
-        [Required(ErrorMessage = "O campo e-mail é obrigatório")]
-        [EmailAddress]
         public string Email { get; set; }
-
+        public string Password { get; set; }
     }
 }

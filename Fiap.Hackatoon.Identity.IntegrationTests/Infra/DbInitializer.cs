@@ -26,19 +26,19 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Infra
             context.Employees.RemoveRange(context.Employees);                        
 
             // Clientes para Login (test@client.com, 55566677788)
-            context.Clients.Add(new Client { Id = 1, Name = "Cliente Login Email", Email = "test@client.com", Document = "11122233344", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateTime(1980, 1, 1), Creation = DateTime.UtcNow });
-            context.Clients.Add(new Client { Id = 2, Name = "Cliente Login Doc", Email = "doc@client.com", Document = "55566677788", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateTime(1985, 5, 5), Creation = DateTime.UtcNow });
+            context.Clients.Add(new Client { Id = 1, Name = "Cliente Login Email", Email = "test@client.com", Document = "11122233344", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateOnly(1980, 1, 1), Creation = DateTime.UtcNow });
+            context.Clients.Add(new Client { Id = 2, Name = "Cliente Login Doc", Email = "doc@client.com", Document = "55566677788", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateOnly(1985, 5, 5), Creation = DateTime.UtcNow });
 
             // Cliente para GetClientById
-            context.Clients.Add(new Client { Id = 3, Name = "Cliente ID Teste", Email = "id@cliente.com", Document = "99988877766", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateTime(1990, 10, 10), Creation = DateTime.UtcNow });
+            context.Clients.Add(new Client { Id = 3, Name = "Cliente ID Teste", Email = "id@cliente.com", Document = "99988877766", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateOnly(1990, 10, 10), Creation = DateTime.UtcNow });
 
             // Cliente para GetClientByEmail
-            context.Clients.Add(new Client { Id = 4, Name = "Cliente Email Teste", Email = "emailget@cliente.com", Document = "12121212121", Password = "Password123", TypeRole = TypeRole.Manager, Birth = new DateTime(1992, 11, 11), Creation = DateTime.UtcNow });
+            context.Clients.Add(new Client { Id = 4, Name = "Cliente Email Teste", Email = "emailget@cliente.com", Document = "12121212121", Password = "Password123", TypeRole = TypeRole.Manager, Birth = new DateOnly(1992, 11, 11), Creation = DateTime.UtcNow });
 
             // Cliente para UpdateClient (com ID específico)
-            context.Clients.Add(new Client { Id = 5, Name = "Cliente Update Original", Email = "update@cliente.com", Document = "12345678910", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateTime(1995, 3, 15), Creation = DateTime.UtcNow });
+            context.Clients.Add(new Client { Id = 5, Name = "Cliente Update Original", Email = "update@cliente.com", Document = "12345678910", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateOnly(1995, 3, 15), Creation = DateTime.UtcNow });
             // Outro cliente com email que poderia ser usado para conflito no Update
-            context.Clients.Add(new Client { Id = 6, Name = "Cliente Conflito Email", Email = "conflito@cliente.com", Document = "01010101010", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateTime(1993, 7, 7), Creation = DateTime.UtcNow });
+            context.Clients.Add(new Client { Id = 6, Name = "Cliente Conflito Email", Email = "conflito@cliente.com", Document = "01010101010", Password = "Password123", TypeRole = TypeRole.Client, Birth = new DateOnly(1993, 7, 7), Creation = DateTime.UtcNow });
 
 
             // Funcionário para autenticação (Login e GetAuthTokenForEmployee)

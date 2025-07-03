@@ -4,6 +4,6 @@
     {
         public string Document  { get; set; }
 
-        public DateTime Birth { get; set; }
+        public DateOnly Birth { get; set; }
     }
 }

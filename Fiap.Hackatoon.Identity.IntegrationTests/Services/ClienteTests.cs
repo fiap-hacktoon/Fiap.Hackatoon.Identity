@@ -137,7 +137,7 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Services
                 Document = "12345678901",
                 Password = "NewPass123",
                 ConfirmPassword = "NewPass123",
-                Birth = new DateTime(2000, 1, 1)
+                Birth = new DateOnly(2000, 1, 1)
             };
             var jsonContent = new StringContent(JsonConvert.SerializeObject(newClientDto), Encoding.UTF8, "application/json");
 
@@ -158,7 +158,7 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Services
                 Document = "98765432100",
                 Password = "AnyPassword",
                 ConfirmPassword = "AnyPassword",
-                Birth = new DateTime(1980, 1, 1)
+                Birth = new DateOnly(1980, 1, 1)
             };
             var jsonContent = new StringContent(JsonConvert.SerializeObject(existingClientDto), Encoding.UTF8, "application/json");
 
@@ -180,7 +180,7 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Services
                 Document = "123", // Inválido
                 Password = "123", // Inválido
                 ConfirmPassword = "123",
-                Birth = DateTime.MinValue // Inválido
+                Birth = new DateOnly(1995, 3, 15)
             };
             var jsonContent = new StringContent(JsonConvert.SerializeObject(invalidClientDto), Encoding.UTF8, "application/json");
 
@@ -314,7 +314,7 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Services
                 Email = "update.new@cliente.com", // Novo email único
                 Document = "12345678910", // Documento original
                 TypeRole = TypeRole.Client,
-                Birth = new DateTime(1995, 3, 15)
+                Birth = new DateOnly(1995, 3, 15)
             };
             var jsonContent = new StringContent(JsonConvert.SerializeObject(updateDto), Encoding.UTF8, "application/json");
 
@@ -341,7 +341,7 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Services
                 Email = "attempt@client.com",
                 Document = "123",
                 TypeRole = TypeRole.Client,
-                Birth = DateTime.Now
+                Birth = DateOnly.FromDateTime(DateTime.Now)
             };
             var jsonContent = new StringContent(JsonConvert.SerializeObject(updateDto), Encoding.UTF8, "application/json");
 
@@ -369,7 +369,7 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Services
                 Email = "conflito@cliente.com", // Email já usado pelo Cliente 6
                 Document = "12345678910",
                 TypeRole = TypeRole.Client,
-                Birth = new DateTime(1995, 3, 15)
+                Birth = new DateOnly(1995, 3, 15)
             };
             var jsonContent = new StringContent(JsonConvert.SerializeObject(updateDto), Encoding.UTF8, "application/json");
 
@@ -392,7 +392,7 @@ namespace Fiap.Hackatoon.Identity.IntegrationTests.Services
                 Email = "invalid", // Inválido
                 Document = "123", // Inválido
                 TypeRole = TypeRole.Client,
-                Birth = DateTime.MinValue // Inválido
+                Birth = new DateOnly(1995, 3, 15)
             };
             var jsonContent = new StringContent(JsonConvert.SerializeObject(invalidUpdateDto), Encoding.UTF8, "application/json");
 

@@ -15,6 +15,14 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
             CreateMap<EmployeeCreateDto, Employee>().ReverseMap();
             CreateMap<EmployeeDto, Employee>().ReverseMap();
 
+
+            CreateMap<EmployeeCreateDto, EmployeeCreateEvent>().ReverseMap();
+            CreateMap<EmployeeUpdateDto, EmployeeUpdateEvent>().ReverseMap();
+
+
+            CreateMap<ClientCreateDto, ClientCreateEvent>().ReverseMap();
+            CreateMap<ClientUpdateDto, ClientUpdateEvent>().ReverseMap();
+
         }
     }
 }

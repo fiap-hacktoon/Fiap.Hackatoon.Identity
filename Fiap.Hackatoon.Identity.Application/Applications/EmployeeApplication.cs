@@ -1,4 +1,5 @@
-﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
+﻿using AutoMapper;
+using Fiap.Hackatoon.Identity.Domain.DTOs;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Applications;
 using Fiap.Hackatoon.Identity.Domain.Interfaces.Services;
 using Fiap.Hackatoon.Identity.Domain.Services;
@@ -15,13 +16,15 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
         private readonly ITokenApplication _tokenApplication;
         private readonly IBus _bus;
         private readonly RabbitMqConnection _rabbitMqConnection;
+        private readonly IMapper _mapper;
 
-        public EmployeeApplication(IEmployeeService employeeService, IBus bus, ITokenApplication tokenApplication, IOptions<RabbitMqConnection> rabbitMqOptions)
+        public EmployeeApplication(IEmployeeService employeeService, IBus bus, ITokenApplication tokenApplication, IOptions<RabbitMqConnection> rabbitMqOptions, IMapper mapper)
         {
             _employeeService = employeeService;
             _bus = bus;
             _tokenApplication = tokenApplication;
             _rabbitMqConnection = rabbitMqOptions.Value;
+            _mapper = mapper;
         }
 
         public async Task<string> Login(string email, string password)
@@ -54,7 +57,9 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
             var endpoint = await _bus.GetSendEndpoint(new Uri($"queue:{_rabbitMqConnection.QueueNameEmployeeCreate}"));
 
-            await endpoint.Send(employeeCreate);            
+            var message = _mapper.Map<EmployeeCreateEvent>(employeeCreate);
+
+            await endpoint.Send(message);            
 
             return true;            
         }
@@ -73,9 +78,14 @@ namespace Fiap.Hackatoon.Identity.Application.Applications
 
             var endpoint = await _bus.GetSendEndpoint(new Uri($"queue:{_rabbitMqConnection.QueueNameEmployeeUpdate}"));
 
-            await endpoint.Send(employeeUpdateDto);            
+            var message = _mapper.Map<EmployeeUpdateEvent>(employeeUpdateDto);
+
+            message.Id = employeeId;
+
+            await endpoint.Send(message);            
 
             return true;
         }      
     }
 }
+;

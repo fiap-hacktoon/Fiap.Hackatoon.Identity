@@ -17,6 +17,6 @@ namespace Fiap.Hackatoon.Identity.Domain.DTOs
         public string Email { get; set; }        
         public string Document { get; set; }        
         public string Password { get; set; }                
-        public DateTime Birth { get; set; }
+        public DateOnly Birth { get; set; }
     }
 }
