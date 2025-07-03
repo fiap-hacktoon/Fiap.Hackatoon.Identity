@@ -35,7 +35,8 @@ jobs:
         uses: docker/build-push-action@v5.0.0
         with:
           context: .       
-          tags: 'rmahlow/fiaphackatoonidentityapi:5.0' # Atualizado para a versão 3.0
+          file: ./Fiap.Hackatoon.Identity.API/Dockerfile
+          tags: 'rmahlow/fiaphackatoonidentityapi:6.0' # Atualizado para a versão 3.0
           push: true
 
       - name: Restore dependencies
