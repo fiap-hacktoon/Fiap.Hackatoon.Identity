@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: identity-api
-        image: rmahlow/fiaphackatoonidentityapi:2.0
+        image: rmahlow/fiaphackatoonidentityapi:3.0
         ports:
         - containerPort: 8081
         resources:
@@ -26,6 +26,8 @@ spec:
             cpu: "0.2"
             memory: 256Mi
         env:
+        - name: ASPNETCORE_URLS
+          value: "http://+:8081"
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
