@@ -1,5 +1,6 @@
 ﻿using Fiap.Hackatoon.Identity.Domain.DTOs;
 using Fiap.Hackatoon.Identity.Infrastructure.Data;
+using Fiap.Hackatoon.Identity.Infrastructure.ElasticSearch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Prometheus;
@@ -27,8 +28,9 @@ namespace Fiap.Hackatoon.Identity.API.Configuration
             services.UseHttpClientMetrics();
 
             services.Configure<RabbitMqConnection>(configuration.GetSection("RabbitMq"));
+            services.Configure<ElasticSettings>(configuration.GetSection("ElasticSettings"));
 
-           
+
         }
 
         public static void UseApiConfiguration(this WebApplication app, IWebHostEnvironment env)

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: identity-api
-        image: rmahlow/fiaphackatoonidentityapi:3.0
+        image: rmahlow/fiaphackatoonidentityapi:7.0
         ports:
         - containerPort: 8081
         resources:
@@ -33,6 +33,16 @@ spec:
             secretKeyRef:
               name: identity-api-secrets
               key: DefaultConnection
+        - name: ElasticSettings__ApiKey
+          valueFrom:
+            secretKeyRef:
+              name: identity-api-secrets
+              key: ApiKey
+        - name: ElasticSettings__CloudId
+          valueFrom:
+            secretKeyRef:
+              name: identity-api-secrets
+              key: CloudId
         - name: SecretJWT
           valueFrom:
             secretKeyRef:
