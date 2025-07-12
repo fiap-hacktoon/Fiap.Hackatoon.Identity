@@ -48,16 +48,16 @@ jobs:
       - name: Unit and Integration Tests 
         run: dotnet test --no-build --verbosity normal    
         
-      # - name: Set Up Kubernets          
-      #   uses: azure/k8s-set-context@v1
-      #   with:
-      #     method: kubeconfig
-      #     kubeconfig: ${{secrets.KUBE_CONFIG}}
-      #     version: 1.21.0
+      - name: Set Up Kubernets          
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{secrets.KUBE_CONFIG}}
+          version: 1.21.0
 
-      # - name: Make script executable
-      #   run: chmod +x ./ContactsUpdateConsumer.Api/Kubernets/deploy.sh
+      - name: Make script executable
+        run: chmod +x ./Fiap.Hackatoon.Identity.API/Kubernets/deploy.sh
 
-      # - name: Deploy to AKS
-      #   run: bash deploy.sh
-      #   working-directory: ./ContactsUpdateConsumer.Api/Kubernets/
+      - name: Deploy to AKS
+        run: bash deploy.sh
+        working-directory: ./Fiap.Hackatoon.Identity.API/Kubernets/
