@@ -29,13 +29,19 @@ var app = builder.Build();
 
 app.UseApiConfiguration(app.Environment);
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<IdentityContext>();
 
-    context.Database.Migrate();
+if (builder.Environment.EnvironmentName != "IntegrationTesting")
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<IdentityContext>();
+
+        context.Database.Migrate();
+    }
+
 }
+
 
 app.UseSwaggerConfiguration();
 
