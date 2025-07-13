@@ -8,8 +8,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: identity-api-deployment  # Nome do seu deployment
-  minReplicas: 3  # Número mínimo de réplicas
-  maxReplicas: 10  # Número máximo de réplicas
+  minReplicas: 1  # Número mínimo de réplicas
+  maxReplicas: 1  # Número máximo de réplicas
   metrics:
     - type: Resource
       resource:
