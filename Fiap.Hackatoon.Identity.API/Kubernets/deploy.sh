@@ -25,6 +25,6 @@ echo "🚪 Aplicando Service da aplicação..."
 kubectl apply -f Service.yaml  # Aplica o Service da aplicação
 
 echo "🚪 Aplicando Service da aplicação..."
-kubectl apply -f hpa.yaml  # Aplica o Service da aplicação
+#kubectl apply -f hpa.yaml  # Aplica o Service da aplicação
 
 echo "✅ Tudo aplicado com sucesso!"
