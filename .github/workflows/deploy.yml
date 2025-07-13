@@ -36,7 +36,7 @@ jobs:
         with:
           context: .       
           file: ./Fiap.Hackatoon.Identity.API/Dockerfile
-          tags: 'rmahlow/fiaphackatoonidentityapi:6.0' # Atualizado para a versão 3.0
+          tags: 'rmahlow/fiaphackatoonidentityapi:latest' # Atualizado para a versão 3.0
           push: true
 
       - name: Restore dependencies

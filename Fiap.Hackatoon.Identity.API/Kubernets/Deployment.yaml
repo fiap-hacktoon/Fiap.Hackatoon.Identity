@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: identity-api
-        image: rmahlow/fiaphackatoonidentityapi:7.0        
+        image: rmahlow/fiaphackatoonidentityapi:latest        
         ports:
         - containerPort: 8081
         resources:
