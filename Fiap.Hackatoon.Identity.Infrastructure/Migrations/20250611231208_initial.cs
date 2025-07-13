@@ -11,6 +11,12 @@ namespace Fiap.Hackatoon.Identity.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(@"IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = 'FastTecFoodsIdentity')
+  BEGIN
+    CREATE DATABASE FastTecFoodsIdentity
+        
+  END");
+
             migrationBuilder.CreateTable(
                 name: "Clients",
                 columns: table => new
