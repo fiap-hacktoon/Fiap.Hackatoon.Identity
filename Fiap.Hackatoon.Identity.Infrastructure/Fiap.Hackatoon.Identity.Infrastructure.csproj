@@ -25,4 +25,10 @@
 	  <ProjectReference Include="..\Fiap.Hackatoon.Identity.Domain\Fiap.Hackatoon.Identity.Domain.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Update="Migrations**.">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
 </Project>

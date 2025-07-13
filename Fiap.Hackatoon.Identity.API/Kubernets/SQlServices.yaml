@@ -11,3 +11,18 @@ spec:
       targetPort: 1433
       name: tcpsql
   type: ClusterIP
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: mssql-lb  
+# spec:
+#   selector:
+#     app: mssql
+#   ports:
+#     - protocol: TCP
+#       port: 11433
+#       targetPort: 1433
+#       name: tcpsql
+#   type: LoadBalancer
