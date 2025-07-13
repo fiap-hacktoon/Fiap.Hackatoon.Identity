@@ -29,9 +29,12 @@ var app = builder.Build();
 
 app.UseApiConfiguration(app.Environment);
 
+Console.WriteLine(builder.Environment.EnvironmentName);
 
 if (builder.Environment.EnvironmentName != "IntegrationTesting")
 {
+    Console.WriteLine("Caiu aqui!!!");
+
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
